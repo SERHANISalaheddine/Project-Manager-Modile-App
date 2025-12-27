@@ -1,3 +1,50 @@
 <resources>
-    <string name="app_name">My Application</string>
+    <string name="app_name">Project Manager</string>
+    
+    <!-- General -->
+    <string name="back">Back</string>
+    <string name="cancel">Cancel</string>
+    <string name="select">Select</string>
+    <string name="save">Save</string>
+    <string name="delete">Delete</string>
+    <string name="edit">Edit</string>
+    
+    <!-- Create Project Screen -->
+    <string name="create_new_project">Create New Project</string>
+    <string name="project_title">Project Title</string>
+    <string name="enter_project_title">Enter Project Title</string>
+    <string name="project_description">Project Description</string>
+    <string name="enter_project_description">Enter Project Description</string>
+    <string name="add_members">Add Members</string>
+    <string name="select_member">Select Member</string>
+    <string name="create_project">Create Project</string>
+    <string name="project_icon">Project icon</string>
+    <string name="members_icon">Members icon</string>
+    <string name="dropdown_arrow">Dropdown arrow</string>
+    
+    <!-- Add Member Dialog -->
+    <string name="add_member">Add Member</string>
+    <string name="add_member_subtitle">Which members will have access to the project</string>
+    
+    <!-- Validation Messages -->
+    <string name="error_project_title_required">Project title is required</string>
+    <string name="error_select_at_least_one_member">Please select at least one member</string>
+    <string name="project_created_successfully">Project created successfully!</string>
+    <string name="error_creating_project">Error creating project. Please try again.</string>
+    
+    <!-- Home Screen -->
+    <string name="challenges_awaiting">Challenges Awaiting</string>
+    <string name="lets_tackle_your_to_do_list">Let\'s tackle your to do list</string>
+    <string name="created">Created</string>
+    <string name="part_of">Part Of</string>
+    
+    <!-- Member Roles -->
+    <string name="sr_front_end_developer">Sr Front End Developer</string>
+    <string name="mid_front_end_developer">Mid Front End Developer</string>
+    <string name="jr_front_end_developer">Jr Front End Developer</string>
+    
+    <!-- Selected Members -->
+    <string name="members_selected">%d member(s) selected</string>
+    <string name="no_members_selected">No members selected</string>
+    
 </resources>

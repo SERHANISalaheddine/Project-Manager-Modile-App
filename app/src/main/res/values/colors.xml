@@ -1,10 +1,47 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <!-- Primary Purple Theme Colors -->
+    <color name="purple_primary">#7C6FDC</color>
+    <color name="purple_primary_dark">#6B5FCB</color>
+    <color name="purple_light">#A99EE8</color>
+    <color name="purple_very_light">#E8E5F8</color>
+    
+    <!-- Legacy Purple Colors -->
     <color name="purple_200">#FFBB86FC</color>
     <color name="purple_500">#FF6200EE</color>
     <color name="purple_700">#FF3700B3</color>
+    
+    <!-- Teal Colors -->
     <color name="teal_200">#FF03DAC5</color>
     <color name="teal_700">#FF018786</color>
+    
+    <!-- Basic Colors -->
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
+    
+    <!-- Background Colors -->
+    <color name="background_light">#F5F5F9</color>
+    <color name="background_white">#FFFFFF</color>
+    <color name="card_background">#FFFFFF</color>
+    
+    <!-- Text Colors -->
+    <color name="text_primary">#1F1F1F</color>
+    <color name="text_secondary">#666666</color>
+    <color name="text_hint">#999999</color>
+    
+    <!-- Accent Colors -->
+    <color name="accent_red">#FF4757</color>
+    <color name="badge_red">#E74C3C</color>
+    
+    <!-- Button Colors -->
+    <color name="button_purple">#7C6FDC</color>
+    <color name="button_purple_pressed">#6B5FCB</color>
+    <color name="button_cancel">#FFFFFF</color>
+    
+    <!-- Input Field Colors -->
+    <color name="input_border">#E0E0E0</color>
+    <color name="input_border_focused">#7C6FDC</color>
+    
+    <!-- Divider Color -->
+    <color name="divider">#EEEEEE</color>
 </resources>
