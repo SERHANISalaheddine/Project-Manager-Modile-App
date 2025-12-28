@@ -114,12 +114,10 @@ public class AddMemberActivity extends AppCompatActivity {
      * Load available members from database
      */
     private void loadMembers() {
-        List<Member> members = databaseHelper.getAllMembers();
-
-        // If no members in database, use sample data
-        if (members.isEmpty()) {
-            members = getSampleMembers();
-        }
+        // TODO(API): Replace this with ApiService.getUsers(pageable) when backend is
+        // ready.
+        // For now we use a hardcoded list of users (mock data) so app works standalone.
+        List<Member> members = getSampleMembers();
 
         memberAdapter.setMembers(members);
 

@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="120dp"
+    android:height="120dp"
+    android:viewportWidth="120"
+    android:viewportHeight="120">
+    <!-- S Logo inspired by design -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M60,10 L80,25 L80,50 L60,65 L40,50 L40,25 Z" />
+    <path
+        android:fillColor="#5ED5A8"
+        android:pathData="M60,45 L75,35 L75,55 L60,65 L45,55 L45,35 Z" />
+    <path
+        android:fillColor="#2C5F8D"
+        android:pathData="M60,65 L75,75 L75,95 L60,110 L45,95 L45,75 Z" />
+</vector>

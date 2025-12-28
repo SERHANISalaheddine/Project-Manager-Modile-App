@@ -190,11 +190,22 @@ public class CreateProjectActivity extends AppCompatActivity implements AddMembe
      */
     private boolean saveProject(Project project) {
         try {
-            // Save project using database helper
+            // TODO(API): Replace this local save with a call to
+            // ApiService.createProject(CreateProjectRequest) via RetrofitClient
+            // and handle the ProjectResponse. Keep local persistence as cache.
+            // For now we persist locally so app works offline/standalone.
+            // Save project using database helper (local mock persistence)
             long projectId = databaseHelper.insertProject(project);
 
             if (projectId > 0) {
                 project.setId((int) projectId);
+                // Also stash last created project locally (mock) for quick access
+                getSharedPreferences("mock_projects", MODE_PRIVATE)
+                        .edit()
+                        .putString("last_title", project.getTitle())
+                        .putString("last_description", project.getDescription())
+                        .putInt("last_member_count", project.getMemberCount())
+                        .apply();
                 return true;
             }
             return false;

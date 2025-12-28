@@ -47,4 +47,50 @@
     <string name="members_selected">%d member(s) selected</string>
     <string name="no_members_selected">No members selected</string>
     
+    <!-- Onboarding / Auth Screens -->
+    <string name="onboarding_title">Stay on Top of Deadlines</string>
+    <string name="onboarding_subtitle">Set due dates, get reminders, and sync across all your devices.</string>
+    <string name="sign_in">Sign In</string>
+    <string name="sign_up">Sign Up</string>
+    
+    <!-- Login Screen -->
+    <string name="sign_in_title">Sign In</string>
+    <string name="sign_in_subtitle">Sign in to my account</string>
+    <string name="email">Email</string>
+    <string name="my_email">My Email</string>
+    <string name="password">Password</string>
+    <string name="my_password">My Password</string>
+    <string name="remember_me">Remember Me</string>
+    <string name="forgot_password">Forgot Password</string>
+    <string name="or">OR</string>
+    <string name="sign_in_with_google">Sign in With Google</string>
+    <string name="sign_in_with_phone">Sign in With Phone</string>
+    <string name="dont_have_account">Don\'t have an account?</string>
+    <string name="sign_up_here">Sign Up Here</string>
+    
+    <!-- Sign Up Screen -->
+    <string name="sign_up_title">Sign Up</string>
+    <string name="sign_up_subtitle">Create your account</string>
+    <string name="first_name">First Name</string>
+    <string name="last_name">Last Name</string>
+    <string name="confirm_password">Confirm Password</string>
+    <string name="already_have_account">Already have an account?</string>
+    <string name="sign_in_here">Sign In Here</string>
+    
+    <!-- Auth Validation -->
+    <string name="error_email_required">Email is required</string>
+    <string name="error_email_invalid">Please enter a valid email address</string>
+    <string name="error_password_required">Password is required</string>
+    <string name="error_password_too_short">Password must be at least 6 characters</string>
+    <string name="error_passwords_dont_match">Passwords don\'t match</string>
+    <string name="error_first_name_required">First name is required</string>
+    <string name="error_last_name_required">Last name is required</string>
+    <string name="error_invalid_credentials">Invalid email or password</string>
+    
+    <!-- Auth Messages -->
+    <string name="login_successful">Login successful! Welcome back.</string>
+    <string name="signup_successful">Account created successfully!</string>
+    <string name="coming_soon">Coming soon!</string>
+    <string name="logout_successful">Logged out successfully</string>
+    
 </resources>

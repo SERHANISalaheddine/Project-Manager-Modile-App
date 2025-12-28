@@ -1,0 +1,345 @@
+========================================
+FRONTEND INTEGRATION GUIDE
+Generated from Backend Microservices
+========================================
+
+This document contains all information needed for Android frontend development.
+Last Updated: 2025-12-28
+
+Services Analyzed:
+- API Gateway
+- Project Service
+- Task Service
+- User Service
+- Notification Service (no controllers/endpoints found; not implemented yet)
+
+
+=== API GATEWAY ===
+Base URL: http://localhost:8080
+Gateway Routes (dev/local Eureka):
+- /api/v1/users/** → lb://user-service
+- /api/v1/projects/** → lb://project-service
+- /api/v1/tasks/** → lb://task-service
+- /api/v1/auth/** → lb://user-service
+- Swagger: /v3/api-docs/user-service → lb://user-service (rewrites to /v3/api-docs)
+- Swagger: /v3/api-docs/project-service → lb://project-service (rewrites to /v3/api-docs)
+- Swagger: /v3/api-docs/task-service → lb://task-service (rewrites to /v3/api-docs)
+Gateway Routes (prod/K8s, Eureka disabled):
+- /api/v1/users/** → http://user-service:8080
+- /api/v1/projects/** → http://project-service:8080
+- /api/v1/tasks/** → http://task-service:8080
+- /api/v1/auth/** → http://user-service:8080
+- Swagger doc routes mirror the above with RewritePath to /v3/api-docs
+CORS: Not configured in gateway configs (application.yml/dev/prod) or security config.
+Security (GatewaySecurityConfig):
+- Permits: /v3/api-docs/**, /swagger-ui/**, /swagger-ui.html, /api/v1/auth/**, /eureka/**
+- All other routes require authentication via JWT (see Authentication section).
+
+
+=== PROJECT SERVICE ENDPOINTS ===
+Base Path: /api/v1/projects
+POST /api/v1/projects
+- Request: CreateProjectRequest (body)
+- Response: ProjectResponse
+- Description: Create a new project
+GET /api/v1/projects/{id}
+- Path: id (Long)
+- Response: ProjectResponse
+- Description: Get project by ID
+PUT /api/v1/projects/{id}
+- Path: id (Long)
+- Request: UpdateProjectRequest (body)
+- Response: ProjectResponse
+- Description: Update project
+DELETE /api/v1/projects/{id}
+- Path: id (Long)
+- Response: 204 No Content
+- Description: Delete project
+POST /api/v1/projects/{id}/members
+- Path: id (Long)
+- Request: AddMemberRequest (body)
+- Response: ProjectMemberResponse
+- Description: Add member to project
+DELETE /api/v1/projects/{id}/members/{userId}
+- Path: id (Long), userId (Long)
+- Response: 204 No Content
+- Description: Remove member from project
+GET /api/v1/projects/{id}/members
+- Path: id (Long)
+- Query: pageable (size default 10, page default 0)
+- Response: Page<RichProjectMembers>
+- Description: List project members (enriched user info)
+
+=== TASK SERVICE ENDPOINTS ===
+Base Path: /api/v1/tasks
+POST /api/v1/tasks
+- Request: CreateTaskRequest (body)
+- Response: TaskResponse
+- Description: Create task
+GET /api/v1/tasks/{id}
+- Path: id (Long)
+- Response: TaskResponse
+- Description: Get task by ID
+PUT /api/v1/tasks/{id}
+- Path: id (Long)
+- Request: UpdateTaskRequest (body)
+- Response: TaskResponse
+- Description: Update task
+DELETE /api/v1/tasks/{id}
+- Path: id (Long)
+- Response: 204 No Content
+- Description: Delete task
+PATCH /api/v1/tasks/{id}/status
+- Path: id (Long)
+- Request: UpdateTaskStatusRequest (body)
+- Response: TaskResponse
+- Description: Update task status only
+GET /api/v1/tasks
+- Query (all optional): userId (Long), projectId (Long), status (TaskStatus), pageable (size default 10, page default 0)
+- Response: Page<RichTaskResponse>
+- Description: Filter tasks
+
+=== USER SERVICE ENDPOINTS ===
+Auth Base Path: /api/v1/auth
+POST /api/v1/auth/register
+- Request: UserRequestDto (body)
+- Response: UserResponseDto
+- Description: Register user
+POST /api/v1/auth/login
+- Request: LoginRequestDto (body)
+- Response: AuthResponseDto { token, type="Bearer" }
+- Description: Login and receive JWT
+Users Base Path: /api/v1/users
+GET /api/v1/users
+- Query: pageable (size default 10, page default 0)
+- Response: Page<UserResponseDto>
+- Description: List users
+GET /api/v1/users/{id}
+- Path: id (Long)
+- Response: UserResponseDto
+- Description: Get user by ID
+DELETE /api/v1/users/{id}
+- Path: id (Long)
+- Response: 204 No Content
+- Description: Delete user
+
+=== PROJECT SERVICE DTOs ===
+CreateProjectRequest {
+  name: String (required, @NotBlank)
+  description: String (optional)
+  ownerId: Long (required, @NotNull)
+}
+UpdateProjectRequest {
+  name: String (required, @NotBlank)
+  description: String (optional)
+}
+AddMemberRequest {
+  userId: Long (required, @NotNull)
+}
+ProjectResponse {
+  id: Long
+  name: String
+  description: String
+  ownerId: Long
+  createdAt: LocalDateTime
+  updatedAt: LocalDateTime
+}
+ProjectMemberResponse {
+  userId: Long
+  projectId: Long
+  addedAt: LocalDateTime
+}
+RichProjectMembers {
+  projectId: Long
+  userId: Long
+  firstName: String
+  lastName: String
+  email: String
+  addedAt: LocalDateTime
+}
+
+=== TASK SERVICE DTOs ===
+CreateTaskRequest {
+  name: String (required, @NotBlank)
+  content: String (optional)
+  status: TaskStatus (optional; default TODO if null)
+  userId: Long (required, @NotNull)
+  projectId: Long (required, @NotNull)
+}
+UpdateTaskRequest {
+  name: String (optional)
+  content: String (optional)
+  status: TaskStatus (optional)
+  userId: Long (optional)
+  projectId: Long (optional)
+}
+UpdateTaskStatusRequest {
+  status: TaskStatus (required, @NotNull)
+}
+TaskResponse {
+  id: Long
+  name: String
+  content: String
+  status: TaskStatus
+  userId: Long
+  projectId: Long
+  createdAt: LocalDateTime
+  updatedAt: LocalDateTime
+}
+RichTaskResponse {
+  id: Long
+  name: String
+  content: String
+  status: TaskStatus
+  projectId: Long
+  createdAt: LocalDateTime
+  updatedAt: LocalDateTime
+  assignee: { id: Long, firstName: String, lastName: String, email: String }
+}
+ErrorResponse (task) {
+  timestamp: LocalDateTime
+  status: int
+  error: String
+  message: String
+}
+ValidationErrorResponse (task) {
+  timestamp: LocalDateTime
+  status: int
+  message: String
+  validationErrors: Map<String,String>
+}
+
+=== USER SERVICE DTOs ===
+LoginRequestDto {
+  email: String (required, @NotBlank, @Email)
+  password: String (required, @NotBlank)
+}
+AuthResponseDto {
+  token: String
+  type: String (default "Bearer")
+}
+UserRequestDto {
+  firstName: String (required, @NotBlank)
+  lastName: String (required, @NotBlank)
+  email: String (@Email)
+  passwordHash: String (required, @NotBlank, @Size(min=6))
+}
+UserResponseDto {
+  id: Long
+  firstName: String
+  lastName: String
+  email: String
+}
+ErrorResponseDto {
+  timestamp: LocalDateTime
+  status: int
+  error: String
+  message: String
+  validationErrors: Map<String,String> (optional)
+}
+
+=== DOMAIN MODELS ===
+Project (projects table) {
+  id: Long (PK, identity)
+  name: String (not null)
+  description: String (nullable; added via migration V4)
+  ownerId: Long (not null)
+  createdAt: LocalDateTime (auto)
+  updatedAt: LocalDateTime (auto)
+  members: Set<ProjectMember> (cascade all, orphanRemoval)
+}
+ProjectMember (project_members table) {
+  id: ProjectMemberId (userId, projectId composite PK)
+  project: Project (ManyToOne)
+  addedAt: LocalDateTime (auto)
+}
+ProjectMemberId {
+  userId: Long
+  projectId: Long
+}
+Task (tasks table) {
+  id: Long (PK, identity)
+  name: String (not null)
+  content: String (text)
+  status: TaskStatus (stored as string; default TODO)
+  userId: Long (not null)
+  projectId: Long (not null)
+  createdAt: LocalDateTime (auto)
+  updatedAt: LocalDateTime (auto)
+}
+User (users table) {
+  id: Long (PK, identity)
+  firstName: String
+  lastName: String
+  email: String (unique, not null)
+  passwordHash: String (not null)
+  createdAt: LocalDateTime (auto)
+  updatedAt: LocalDateTime (auto)
+}
+
+=== ENUMS ===
+TaskStatus (task-service) values: TODO, IN_PROGRESS, DONE, ARCHIVED
+
+=== AUTHENTICATION ===
+Method: JWT bearer tokens issued by user-service, validated at API Gateway.
+Required Header: Authorization: Bearer <token>
+Token claims (from user-service JwtUtil): subject=email, userId (Long), issuedAt, expiration (jwt.expiration, default 86400000 ms).
+Gateway behavior: JwtAuthenticationFilter parses token, sets Spring Security context, and forwards headers X-User-Id and X-User-Email to downstream services.
+Login Endpoint: POST /api/v1/auth/login (body LoginRequestDto) → AuthResponseDto { token, type="Bearer" }
+Register Endpoint: POST /api/v1/auth/register (body UserRequestDto) → UserResponseDto
+Token Refresh: Not implemented
+Public endpoints: /api/v1/auth/**, /v3/api-docs/**, /swagger-ui/**, /swagger-ui.html, /eureka/**
+Protected endpoints: all others via gateway security filter chain
+
+=== ERROR RESPONSE FORMAT ===
+Project Service:
+- ErrorResponse { status:int, message:String, timestamp:LocalDateTime }
+- ValidationErrorResponse { status:int, message:String ("Validation failed"), timestamp:LocalDateTime, errors: Map<field,error> }
+Task Service:
+- ErrorResponse { timestamp:LocalDateTime, status:int, error:String?, message:String }
+- ValidationErrorResponse { timestamp:LocalDateTime, status:int, message:String, validationErrors: Map<field,error> }
+User Service:
+- ErrorResponseDto { timestamp:LocalDateTime, status:int, error:String, message:String, validationErrors: Map<field,error> }
+Common HTTP codes used:
+- 400 Bad Request: validation errors
+- 401 Unauthorized: invalid credentials (user-service) or missing/invalid JWT at gateway
+- 404 Not Found: resource missing
+- 409 Conflict: duplicates (e.g., email exists, project/member conflicts)
+- 500 Internal Server Error: unexpected
+
+=== DATABASE SCHEMA ===
+Project Service (Flyway):
+- V1__create_project_table.sql: projects(id BIGSERIAL PK, name VARCHAR(255) NOT NULL, owner_id BIGINT NOT NULL, created_at TIMESTAMP, updated_at TIMESTAMP)
+- V2__create_project_memebers_table.sql: project_members(user_id BIGINT NOT NULL, project_id BIGINT NOT NULL FK projects(id) ON DELETE CASCADE, added_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP, PK (user_id, project_id))
+- V3__drop_projects_memebers_default_timestamp.sql: drops default on added_at
+- V4__add_description_column_to_project.sql: adds description TEXT to projects
+- V5__make_name_ownerid_not_null.sql: enforces NOT NULL on name, owner_id
+Task Service (Flyway):
+- V1__create_task_table.sql: tasks(id BIGSERIAL PK, name VARCHAR(255) NOT NULL, content TEXT, status VARCHAR(20), user_id BIGINT NOT NULL, project_id BIGINT NOT NULL, created_at TIMESTAMP, updated_at TIMESTAMP)
+User Service (Flyway):
+- V1__create_user_table.sql: users(id BIGSERIAL PK, first_name VARCHAR(50), last_name VARCHAR(50), email VARCHAR(100) UNIQUE NOT NULL, password_hash VARCHAR(255) NOT NULL, created_at TIMESTAMP, updated_at TIMESTAMP)
+
+=== GRPC SERVICES ===
+- user-service.proto: UserServiceGrpc exposes GetUsersByIds(UserIdsRequest { ids[] }) → UserListResponse { GrpcUserDto[] }, and UserExists(UserExistsRequest { user_id }) → UserExistsResponse { exists }
+- project-service.proto: ProjectServiceGrpc exposes CheckProjectMembership(ProjectMembershipRequest { project_id, user_id }) → ProjectMembershipResponse { is_member }
+Frontend should continue using REST via API Gateway; gRPC is for service-to-service calls.
+
+=== CONFIGURATION & CONSTANTS ===
+Ports:
+- API Gateway: 8080
+- Project Service: dev server.port=0 (random); prod server.port=8080
+- Task Service: server.port not explicitly set (Spring default 8080) in application.yml
+- User Service: dev server.port=0; prod server.port=8080
+- gRPC: project-service dev 9091 / prod 9090; user-service 9090
+JWT:
+- Shared secret (dev default): vQtwi03LkJVn8koqVNHyAQQ/OanLOGSn0/LYCAUUwi3EcgpWB5Br3DOa9UA4YCNmvvVKkt57MXiiWpJ/j6O3DQ==
+- Expiration (user-service): 86400000 ms (1 day)
+Databases (dev/local profiles):
+- project-service: jdbc:postgresql://localhost:5432/project_db (user: postgres/password)
+- user-service: jdbc:postgresql://localhost:5432/user_db (user: postgres/password)
+- task-service: datasource not defined in repo (NOT IMPLEMENTED YET; likely env-provided)
+Eureka (service discovery):
+- Enabled in dev for gateway/project/user (task-service config not shown), defaultZone http://localhost:8761/eureka/
+- Disabled in prod/K8s configs
+CORS: Not configured in any service configs; frontend may need gateway-level CORS setup if browsers reject requests.
+

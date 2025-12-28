@@ -2,6 +2,8 @@ package com.example.ProjectManager.activities;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
 import android.widget.LinearLayout;
@@ -17,6 +19,7 @@ import com.example.ProjectManager.R;
 import com.example.ProjectManager.adapters.ProjectAdapter;
 import com.example.ProjectManager.database.ProjectDatabaseHelper;
 import com.example.ProjectManager.models.Project;
+import com.example.ProjectManager.utils.SharedPrefsManager;
 
 import java.util.List;
 
@@ -46,6 +49,7 @@ public class MainActivity extends AppCompatActivity implements ProjectAdapter.On
     // Data
     private ProjectAdapter projectAdapter;
     private ProjectDatabaseHelper databaseHelper;
+    private SharedPrefsManager prefsManager;
     private boolean isCreatedTabSelected = true;
 
     // Activity Result Launcher for Create Project
@@ -65,6 +69,9 @@ public class MainActivity extends AppCompatActivity implements ProjectAdapter.On
 
         // Initialize database helper
         databaseHelper = new ProjectDatabaseHelper(this);
+
+        // Initialize shared preferences manager
+        prefsManager = SharedPrefsManager.getInstance(this);
 
         // Initialize views
         initViews();
@@ -278,5 +285,46 @@ public class MainActivity extends AppCompatActivity implements ProjectAdapter.On
         if (databaseHelper != null) {
             databaseHelper.close();
         }
+    }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        getMenuInflater().inflate(R.menu.menu_main, menu);
+        return true;
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        if (item.getItemId() == R.id.action_logout) {
+            handleLogout();
+            return true;
+        }
+        return super.onOptionsItemSelected(item);
+    }
+
+    /**
+     * Handle user logout
+     */
+    private void handleLogout() {
+        new androidx.appcompat.app.AlertDialog.Builder(this)
+                .setTitle("Logout")
+                .setMessage("Are you sure you want to logout?")
+                .setPositiveButton("Logout", (dialog, which) -> {
+                    // Clear user data
+                    prefsManager.clearUserData();
+
+                    // Show success message
+                    android.widget.Toast.makeText(this,
+                            R.string.logout_successful,
+                            android.widget.Toast.LENGTH_SHORT).show();
+
+                    // Navigate to onboarding screen
+                    Intent intent = new Intent(this, OnboardingActivity.class);
+                    intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+                    startActivity(intent);
+                    finish();
+                })
+                .setNegativeButton("Cancel", null)
+                .show();
     }
 }
