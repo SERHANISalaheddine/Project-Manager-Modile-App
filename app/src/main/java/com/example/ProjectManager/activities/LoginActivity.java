@@ -16,7 +16,15 @@ import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.example.ProjectManager.R;
+import com.example.ProjectManager.api.ApiService;
+import com.example.ProjectManager.api.RetrofitClient;
+import com.example.ProjectManager.models.dto.AuthResponseDto;
+import com.example.ProjectManager.models.dto.LoginRequestDto;
 import com.example.ProjectManager.utils.SharedPrefsManager;
+
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
 
 /**
  * Login screen where users can sign in with email/password.
@@ -37,14 +45,7 @@ public class LoginActivity extends AppCompatActivity {
 
     private boolean isPasswordVisible = false;
     private SharedPrefsManager prefsManager;
-
-    // Mock credentials for testing
-    private static final String MOCK_EMAIL = "test@example.com";
-    private static final String MOCK_PASSWORD = "password123";
-    private static final long MOCK_USER_ID = 1L;
-    private static final String MOCK_FIRST_NAME = "Test";
-    private static final String MOCK_LAST_NAME = "User";
-    private static final String MOCK_TOKEN = "mock_jwt_token_12345";
+    private ApiService apiService;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -52,15 +53,13 @@ public class LoginActivity extends AppCompatActivity {
         setContentView(R.layout.activity_login);
 
         prefsManager = SharedPrefsManager.getInstance(this);
+        apiService = RetrofitClient.getInstance(this).create(ApiService.class);
 
         initViews();
         setupListeners();
 
-        // Pre-fill email if Remember Me was checked
-        if (prefsManager.isRememberMeEnabled()) {
-            etEmail.setText(prefsManager.getUserEmail());
-            cbRememberMe.setChecked(true);
-        }
+        etEmail.setText(prefsManager.getUserEmail());
+        cbRememberMe.setChecked(true);
     }
 
     private void initViews() {
@@ -128,14 +127,73 @@ public class LoginActivity extends AppCompatActivity {
             return;
         }
 
-        // TODO: Replace with API call - apiService.login(email, password)
-        // Call: RetrofitClient.getInstance().create(ApiService.class).login(new
-        // LoginRequestDto(email, password))
-        // On success: save token and user data, navigate to MainActivity
-        // On error: show error message
+        // Show loading state
+        btnSignIn.setEnabled(false);
+        btnSignIn.setText("Signing in...");
 
-        // Mock authentication for now
-        performMockLogin(email, password);
+        // Make API call to login endpoint
+        Call<AuthResponseDto> call = apiService.login(new LoginRequestDto(email, password));
+        call.enqueue(new Callback<AuthResponseDto>() {
+            @Override
+            public void onResponse(Call<AuthResponseDto> call, Response<AuthResponseDto> response) {
+                btnSignIn.setEnabled(true);
+                btnSignIn.setText(R.string.sign_in);
+
+                if (response.isSuccessful() && response.body() != null) {
+                    AuthResponseDto authResponse = response.body();
+                    String token = authResponse.getToken();
+
+                    // Save Remember Me preference
+                    prefsManager.setRememberMe(cbRememberMe.isChecked());
+
+                    // TODO: After successful login, fetch user profile to get firstName, lastName
+                    // For now, use email as a placeholder and ID from the token
+                    // You should decode the JWT to get userId or fetch user info from GET
+                    // /api/v1/users/me endpoint
+                    prefsManager.saveUserData(
+                            1L, // TODO: Get actual user ID from profile endpoint
+                            email,
+                            "User", // TODO: Get actual firstName
+                            "", // TODO: Get actual lastName
+                            token);
+
+                    // Show success message
+                    Toast.makeText(LoginActivity.this, R.string.login_successful, Toast.LENGTH_SHORT).show();
+
+                    // Navigate to MainActivity
+                    navigateToMain();
+                } else {
+                    // Handle error response
+                    handleLoginError(response);
+                }
+            }
+
+            @Override
+            public void onFailure(Call<AuthResponseDto> call, Throwable t) {
+                btnSignIn.setEnabled(true);
+                btnSignIn.setText(R.string.sign_in);
+
+                Toast.makeText(LoginActivity.this,
+                        "Network error: " + t.getMessage(),
+                        Toast.LENGTH_LONG).show();
+                t.printStackTrace();
+            }
+        });
+    }
+
+    private void handleLoginError(Response<AuthResponseDto> response) {
+        if (response.code() == 401) {
+            // Invalid credentials
+            Toast.makeText(this, R.string.error_invalid_credentials, Toast.LENGTH_LONG).show();
+            etPassword.setError(getString(R.string.error_invalid_credentials));
+            etPassword.requestFocus();
+        } else if (response.code() == 400) {
+            // Bad request (validation error)
+            Toast.makeText(this, "Invalid email or password format", Toast.LENGTH_LONG).show();
+        } else {
+            // Other server error
+            Toast.makeText(this, "Server error: " + response.code(), Toast.LENGTH_LONG).show();
+        }
     }
 
     private boolean validateInputs(String email, String password) {
@@ -160,37 +218,6 @@ public class LoginActivity extends AppCompatActivity {
         }
 
         return true;
-    }
-
-    /**
-     * Mock login implementation for testing without backend.
-     * Replace this with actual API call when backend is ready.
-     */
-    private void performMockLogin(String email, String password) {
-        // Mock authentication: check hardcoded credentials
-        if (email.equals(MOCK_EMAIL) && password.equals(MOCK_PASSWORD)) {
-            // Save Remember Me preference
-            prefsManager.setRememberMe(cbRememberMe.isChecked());
-
-            // Save mock user data to SharedPreferences
-            prefsManager.saveUserData(
-                    MOCK_USER_ID,
-                    email,
-                    MOCK_FIRST_NAME,
-                    MOCK_LAST_NAME,
-                    MOCK_TOKEN);
-
-            // Show success message
-            Toast.makeText(this, R.string.login_successful, Toast.LENGTH_SHORT).show();
-
-            // Navigate to MainActivity
-            navigateToMain();
-        } else {
-            // Show error for invalid credentials
-            Toast.makeText(this, R.string.error_invalid_credentials, Toast.LENGTH_LONG).show();
-            etPassword.setError(getString(R.string.error_invalid_credentials));
-            etPassword.requestFocus();
-        }
     }
 
     private void navigateToMain() {

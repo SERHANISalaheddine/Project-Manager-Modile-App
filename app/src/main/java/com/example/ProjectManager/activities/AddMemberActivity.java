@@ -4,6 +4,7 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
+import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
@@ -11,11 +12,18 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.ProjectManager.R;
 import com.example.ProjectManager.adapters.MemberAdapter;
-import com.example.ProjectManager.database.ProjectDatabaseHelper;
+import com.example.ProjectManager.api.ApiService;
+import com.example.ProjectManager.api.RetrofitClient;
 import com.example.ProjectManager.models.Member;
+import com.example.ProjectManager.models.dto.PageResponse;
+import com.example.ProjectManager.models.dto.UserResponseDto;
 
 import java.util.ArrayList;
 import java.util.List;
+
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
 
 /**
  * Activity for selecting project members.
@@ -36,16 +44,16 @@ public class AddMemberActivity extends AppCompatActivity {
 
     // Data
     private MemberAdapter memberAdapter;
-    private ProjectDatabaseHelper databaseHelper;
     private List<Member> preSelectedMembers;
+    private ApiService apiService;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.dialog_add_member);
 
-        // Initialize database helper
-        databaseHelper = new ProjectDatabaseHelper(this);
+        // Initialize API service
+        apiService = RetrofitClient.getInstance(this).create(ApiService.class);
 
         // Get pre-selected members from intent
         if (getIntent() != null && getIntent().hasExtra(EXTRA_PRE_SELECTED_MEMBERS)) {
@@ -111,46 +119,68 @@ public class AddMemberActivity extends AppCompatActivity {
     }
 
     /**
-     * Load available members from database
+     * Load available members from API
      */
     private void loadMembers() {
-        // TODO(API): Replace this with ApiService.getUsers(pageable) when backend is
-        // ready.
-        // For now we use a hardcoded list of users (mock data) so app works standalone.
-        List<Member> members = getSampleMembers();
+        // Show loading state
+        btnSelect.setEnabled(false);
+        btnSelect.setText("Loading...");
 
-        memberAdapter.setMembers(members);
+        // Make API call to fetch users
+        Call<PageResponse<UserResponseDto>> call = apiService.getUsers(0, 50);
+        call.enqueue(new Callback<PageResponse<UserResponseDto>>() {
+            @Override
+            public void onResponse(Call<PageResponse<UserResponseDto>> call,
+                    Response<PageResponse<UserResponseDto>> response) {
+                btnSelect.setEnabled(true);
+                btnSelect.setText(R.string.select);
 
-        // Set pre-selected members
-        if (!preSelectedMembers.isEmpty()) {
-            memberAdapter.setPreSelectedMembers(preSelectedMembers);
-        }
-    }
+                if (response.isSuccessful() && response.body() != null) {
+                    PageResponse<UserResponseDto> pageResponse = response.body();
+                    List<UserResponseDto> users = pageResponse.getContent();
 
-    /**
-     * Get sample members for demonstration
-     */
-    private List<Member> getSampleMembers() {
-        List<Member> members = new ArrayList<>();
-        members.add(new Member(1, "Ivankov", "Sr Front End Developer"));
-        members.add(new Member(2, "Brahm", "Mid Front End Developer"));
-        members.add(new Member(3, "Alice", "Sr Front End Developer"));
-        members.add(new Member(4, "Jeane", "Jr Front End Developer"));
-        members.add(new Member(5, "Claudia", "Jr Front End Developer"));
-        return members;
+                    // Convert UserResponseDto to Member objects
+                    List<Member> members = new ArrayList<>();
+                    if (users != null) {
+                        for (UserResponseDto user : users) {
+                            Member member = new Member(
+                                    user.getId().intValue(),
+                                    user.getFirstName() + " " + user.getLastName(),
+                                    "" // No role from API response
+                            );
+                            members.add(member);
+                        }
+                    }
+
+                    memberAdapter.setMembers(members);
+
+                    // Set pre-selected members
+                    if (!preSelectedMembers.isEmpty()) {
+                        memberAdapter.setPreSelectedMembers(preSelectedMembers);
+                    }
+                } else {
+                    Toast.makeText(AddMemberActivity.this,
+                            "Failed to load users: " + response.code(),
+                            Toast.LENGTH_LONG).show();
+                }
+            }
+
+            @Override
+            public void onFailure(Call<PageResponse<UserResponseDto>> call, Throwable t) {
+                btnSelect.setEnabled(true);
+                btnSelect.setText(R.string.select);
+
+                Toast.makeText(AddMemberActivity.this,
+                        "Network error: " + t.getMessage(),
+                        Toast.LENGTH_LONG).show();
+                t.printStackTrace();
+            }
+        });
     }
 
     @Override
     public void onBackPressed() {
         setResult(RESULT_CANCELED);
         super.onBackPressed();
-    }
-
-    @Override
-    protected void onDestroy() {
-        super.onDestroy();
-        if (databaseHelper != null) {
-            databaseHelper.close();
-        }
     }
 }

@@ -1,5 +1,7 @@
 package com.example.ProjectManager.api;
 
+import android.content.Context;
+
 import com.example.ProjectManager.utils.Constants;
 
 import okhttp3.OkHttpClient;
@@ -8,7 +10,7 @@ import retrofit2.Retrofit;
 import retrofit2.converter.gson.GsonConverterFactory;
 
 /**
- * Provides a configured Retrofit instance. Not used yet.
+ * Provides a configured Retrofit instance with authentication interceptor.
  */
 public final class RetrofitClient {
     private static volatile Retrofit retrofit;
@@ -16,14 +18,15 @@ public final class RetrofitClient {
     private RetrofitClient() {
     }
 
-    public static Retrofit getInstance() {
+    public static Retrofit getInstance(Context context) {
         if (retrofit == null) {
             synchronized (RetrofitClient.class) {
                 if (retrofit == null) {
                     HttpLoggingInterceptor logging = new HttpLoggingInterceptor();
-                    logging.setLevel(HttpLoggingInterceptor.Level.BASIC);
+                    logging.setLevel(HttpLoggingInterceptor.Level.BODY);
 
                     OkHttpClient client = new OkHttpClient.Builder()
+                            .addInterceptor(new AuthInterceptor(context))
                             .addInterceptor(logging)
                             .build();
 
@@ -37,7 +40,4 @@ public final class RetrofitClient {
         }
         return retrofit;
     }
-
-    // Example usage when backend is ready:
-    // ApiService api = getInstance().create(ApiService.class);
 }

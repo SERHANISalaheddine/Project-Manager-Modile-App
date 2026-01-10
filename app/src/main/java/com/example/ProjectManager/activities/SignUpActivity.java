@@ -13,11 +13,19 @@ import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.example.ProjectManager.R;
+import com.example.ProjectManager.api.ApiService;
+import com.example.ProjectManager.api.RetrofitClient;
+import com.example.ProjectManager.models.dto.UserRequestDto;
+import com.example.ProjectManager.models.dto.UserResponseDto;
 import com.example.ProjectManager.utils.SharedPrefsManager;
+
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
 
 /**
  * Sign up screen where users can create a new account.
- * Uses mock registration for now.
+ * Uses real API registration.
  */
 public class SignUpActivity extends AppCompatActivity {
 
@@ -31,10 +39,8 @@ public class SignUpActivity extends AppCompatActivity {
     private TextView tvSignInLink;
 
     private SharedPrefsManager prefsManager;
-
-    // Mock data for new user
-    private static final long MOCK_NEW_USER_ID = 2L;
-    private static final String MOCK_TOKEN = "mock_jwt_token_67890";
+    private ApiService apiService;
+    private boolean isSigningUp = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -42,6 +48,7 @@ public class SignUpActivity extends AppCompatActivity {
         setContentView(R.layout.activity_signup);
 
         prefsManager = SharedPrefsManager.getInstance(this);
+        apiService = RetrofitClient.getInstance(this).create(ApiService.class);
 
         initViews();
         setupListeners();
@@ -81,14 +88,60 @@ public class SignUpActivity extends AppCompatActivity {
             return;
         }
 
-        // TODO: Replace with API call - apiService.register(userRequestDto)
-        // Call: RetrofitClient.getInstance().create(ApiService.class).register(new
-        // UserRequestDto(firstName, lastName, email, password))
-        // On success: show success message and navigate to login or auto-login
-        // On error: show error message (e.g., email already exists)
+        // Prevent multiple submissions
+        if (isSigningUp) {
+            return;
+        }
 
-        // Mock registration for now
-        performMockSignUp(firstName, lastName, email);
+        isSigningUp = true;
+        btnSignUp.setEnabled(false);
+
+        // Build registration request
+        UserRequestDto request = new UserRequestDto(firstName, lastName, email, password);
+
+        // Make API call to register
+        Call<UserResponseDto> call = apiService.register(request);
+        call.enqueue(new Callback<UserResponseDto>() {
+            @Override
+            public void onResponse(Call<UserResponseDto> call, Response<UserResponseDto> response) {
+                if (response.isSuccessful() && response.body() != null) {
+                    UserResponseDto user = response.body();
+                    // Registration successful, navigate to login
+                    Toast.makeText(SignUpActivity.this, R.string.signup_successful, Toast.LENGTH_SHORT).show();
+                    // User must login with their new credentials
+                    finish();
+                } else {
+                    isSigningUp = false;
+                    btnSignUp.setEnabled(true);
+                    handleSignUpError(response);
+                }
+            }
+
+            @Override
+            public void onFailure(Call<UserResponseDto> call, Throwable t) {
+                isSigningUp = false;
+                btnSignUp.setEnabled(true);
+                Toast.makeText(SignUpActivity.this,
+                        "Network error: " + t.getMessage(), Toast.LENGTH_LONG).show();
+            }
+        });
+    }
+
+    /**
+     * Handle errors from registration API call
+     */
+    private void handleSignUpError(Response<UserResponseDto> response) {
+        String errorMessage = "Error creating account";
+        if (response.code() == 400) {
+            errorMessage = "Invalid input data";
+        } else if (response.code() == 409) {
+            errorMessage = "Email already registered";
+            etEmail.setError("This email is already in use");
+            etEmail.requestFocus();
+        } else if (response.code() == 500) {
+            errorMessage = "Server error - please try again";
+        }
+        Toast.makeText(this, errorMessage, Toast.LENGTH_LONG).show();
     }
 
     private boolean validateInputs(String firstName, String lastName, String email,
@@ -141,33 +194,6 @@ public class SignUpActivity extends AppCompatActivity {
         }
 
         return true;
-    }
-
-    /**
-     * Mock sign up implementation for testing without backend.
-     * Replace this with actual API call when backend is ready.
-     */
-    private void performMockSignUp(String firstName, String lastName, String email) {
-        // Mock registration: automatically log in the new user
-        prefsManager.saveUserData(
-                MOCK_NEW_USER_ID,
-                email,
-                firstName,
-                lastName,
-                MOCK_TOKEN);
-
-        // Show success message
-        Toast.makeText(this, R.string.signup_successful, Toast.LENGTH_SHORT).show();
-
-        // Navigate to MainActivity
-        navigateToMain();
-    }
-
-    private void navigateToMain() {
-        Intent intent = new Intent(this, MainActivity.class);
-        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
-        startActivity(intent);
-        finish();
     }
 
     @Override
