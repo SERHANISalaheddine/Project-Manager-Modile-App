@@ -1,4 +1,4 @@
-package com.example.ProjectManager;
+package com.example.ProjectManager.activities;
 
 import android.content.Intent;
 import android.os.Bundle;
@@ -8,6 +8,8 @@ import android.widget.TextView;
 import android.widget.ProgressBar;
 
 import androidx.appcompat.app.AppCompatActivity;
+
+import com.example.ProjectManager.R;
 
 public class WelcomeActivity extends AppCompatActivity {
 
