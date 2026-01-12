@@ -51,6 +51,7 @@ public class SignUpActivity extends AppCompatActivity {
         prefsManager = SharedPrefsManager.getInstance(this);
         apiService = RetrofitClient.getInstance(this).create(ApiService.class);
 
+        setupBackPressHandler();
         initViews();
         setupListeners();
     }
@@ -237,9 +238,13 @@ public class SignUpActivity extends AppCompatActivity {
         return true;
     }
 
-    @Override
-    public void onBackPressed() {
-        super.onBackPressed();
-        finish();
+    // Handle back press using OnBackPressedDispatcher
+    private void setupBackPressHandler() {
+        getOnBackPressedDispatcher().addCallback(this, new androidx.activity.OnBackPressedCallback(true) {
+            @Override
+            public void handleOnBackPressed() {
+                finish();
+            }
+        });
     }
 }

@@ -52,6 +52,15 @@ public class AddMemberActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.dialog_add_member);
 
+        // Handle back press using OnBackPressedDispatcher
+        getOnBackPressedDispatcher().addCallback(this, new androidx.activity.OnBackPressedCallback(true) {
+            @Override
+            public void handleOnBackPressed() {
+                setResult(RESULT_CANCELED);
+                finish();
+            }
+        });
+
         // Initialize API service
         apiService = RetrofitClient.getInstance(this).create(ApiService.class);
 
@@ -176,11 +185,5 @@ public class AddMemberActivity extends AppCompatActivity {
                 t.printStackTrace();
             }
         });
-    }
-
-    @Override
-    public void onBackPressed() {
-        setResult(RESULT_CANCELED);
-        super.onBackPressed();
     }
 }
