@@ -4,7 +4,11 @@ import com.example.ProjectManager.models.dto.AddMemberRequest;
 import com.example.ProjectManager.models.dto.AuthResponseDto;
 import com.example.ProjectManager.models.dto.CreateProjectRequest;
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
 import com.example.ProjectManager.models.dto.CreateTaskRequest;
+=======
+import com.example.ProjectManager.models.dto.ForgotPasswordRequest;
+>>>>>>> Stashed changes
 =======
 import com.example.ProjectManager.models.dto.ForgotPasswordRequest;
 >>>>>>> Stashed changes
@@ -13,6 +17,7 @@ import com.example.ProjectManager.models.dto.MessageResponse;
 import com.example.ProjectManager.models.dto.PageResponse;
 import com.example.ProjectManager.models.dto.PasswordUpdateRequest;
 import com.example.ProjectManager.models.dto.ProjectResponse;
+<<<<<<< Updated upstream
 <<<<<<< Updated upstream
 import com.example.ProjectManager.models.dto.TaskResponse;
 import com.example.ProjectManager.models.dto.UserRequestDto;
@@ -28,11 +33,23 @@ import com.example.ProjectManager.models.dto.UserResponseDto;
 
 import okhttp3.MultipartBody;
 >>>>>>> Stashed changes
+=======
+import com.example.ProjectManager.models.dto.ResetPasswordRequest;
+import com.example.ProjectManager.models.dto.UpdateUserRequest;
+import com.example.ProjectManager.models.dto.UserRequestDto;
+import com.example.ProjectManager.models.dto.UserResponseDto;
+
+import okhttp3.MultipartBody;
+>>>>>>> Stashed changes
 import retrofit2.Call;
 import retrofit2.http.Body;
 import retrofit2.http.DELETE;
 import retrofit2.http.GET;
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
+=======
+import retrofit2.http.Multipart;
+>>>>>>> Stashed changes
 =======
 import retrofit2.http.Multipart;
 >>>>>>> Stashed changes

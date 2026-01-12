@@ -42,8 +42,13 @@ public class WelcomeActivity extends AppCompatActivity {
             updateUI();
         } else {
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
             // Sign In
             startActivity(new Intent(this, LoginActivity.class));
+=======
+            // Navigate to Onboarding for Sign In
+            startActivity(new Intent(this, OnboardingActivity.class));
+>>>>>>> Stashed changes
 =======
             // Navigate to Onboarding for Sign In
             startActivity(new Intent(this, OnboardingActivity.class));
