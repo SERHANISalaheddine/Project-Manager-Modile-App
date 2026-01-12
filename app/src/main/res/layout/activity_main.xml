@@ -197,97 +197,26 @@
         android:layout_height="52dp"
         android:layout_marginStart="18dp"
         android:layout_marginEnd="18dp"
-        android:layout_marginBottom="76dp"
+        android:layout_marginBottom="18dp"
         android:background="@drawable/bg_btn_gradient"
         android:elevation="8dp"
         android:text="@string/create_project"
         android:textAllCaps="false"
         android:textColor="@android:color/white"
         android:textSize="14sp"
-        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintBottom_toTopOf="@id/bottomNav"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"/>
 
-    <!-- BOTTOM NAV -->
-    <LinearLayout
+    <!-- BOTTOM NAV (Included Component) -->
+    <include
         android:id="@+id/bottomNav"
+        layout="@layout/nav_bottom"
         android:layout_width="0dp"
         android:layout_height="56dp"
-        android:layout_marginStart="18dp"
-        android:layout_marginEnd="18dp"
-        android:layout_marginBottom="12dp"
-        android:gravity="center"
-        android:orientation="horizontal"
+        android:layout_marginBottom="16dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent">
-
-        <LinearLayout
-            android:id="@+id/nav_home"
-            android:layout_width="0dp"
-            android:layout_height="match_parent"
-            android:layout_weight="1"
-            android:gravity="center"
-            android:orientation="vertical">
-
-            <ImageView
-                android:layout_width="22dp"
-                android:layout_height="22dp"
-                android:src="@drawable/ic_home"
-                app:tint="#7B61FF"/>
-        </LinearLayout>
-
-        <LinearLayout
-            android:id="@+id/nav_calendar"
-            android:layout_width="0dp"
-            android:layout_height="match_parent"
-            android:layout_weight="1"
-            android:gravity="center"
-            android:orientation="vertical">
-
-            <ImageView
-                android:layout_width="22dp"
-                android:layout_height="22dp"
-                android:src="@drawable/ic_calendar"
-                app:tint="#111111"/>
-        </LinearLayout>
-
-        <LinearLayout
-            android:id="@+id/nav_tasks"
-            android:layout_width="0dp"
-            android:layout_height="match_parent"
-            android:layout_weight="1"
-            android:gravity="center"
-            android:orientation="vertical">
-
-            <ImageView
-                android:layout_width="22dp"
-                android:layout_height="22dp"
-                android:src="@drawable/ic_tasks"
-                app:tint="#111111"/>
-        </LinearLayout>
-
-        <FrameLayout
-            android:id="@+id/nav_profile"
-            android:layout_width="0dp"
-            android:layout_height="38dp"
-            android:layout_weight="1"
-            android:foregroundGravity="center">
-
-            <View
-                android:layout_width="34dp"
-                android:layout_height="34dp"
-                android:layout_gravity="center"
-                android:background="@drawable/bg_avatar_placeholder_2"/>
-
-            <ImageView
-                android:layout_width="18dp"
-                android:layout_height="18dp"
-                android:layout_gravity="center"
-                android:src="@drawable/ic_profile"
-                app:tint="@android:color/white"/>
-        </FrameLayout>
-
-    </LinearLayout>
+        app:layout_constraintEnd_toEndOf="parent"/>
 
 </androidx.constraintlayout.widget.ConstraintLayout>
