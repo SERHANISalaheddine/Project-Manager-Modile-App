@@ -1,0 +1,39 @@
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="96dp"
+    android:height="96dp"
+    android:viewportWidth="96"
+    android:viewportHeight="96">
+
+    <!-- Paper -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M20,10h40l16,16v50a6,6 0 0,1 -6,6H20a6,6 0 0,1 -6,-6V16a6,6 0 0,1 6,-6z"/>
+
+    <!-- Fold -->
+    <path
+        android:fillColor="#EDEAFF"
+        android:pathData="M60,10v16h16z"/>
+
+    <!-- Lines -->
+    <path
+        android:strokeColor="#6C4DFF"
+        android:strokeWidth="3"
+        android:pathData="M28,38h32"/>
+
+    <path
+        android:strokeColor="#6C4DFF"
+        android:strokeWidth="3"
+        android:pathData="M28,48h28"/>
+
+    <path
+        android:strokeColor="#6C4DFF"
+        android:strokeWidth="3"
+        android:pathData="M28,58h24"/>
+
+    <!-- Check -->
+    <path
+        android:strokeColor="#22C55E"
+        android:strokeWidth="3"
+        android:pathData="M28,68l4,4l8,-8"
+        android:fillColor="@android:color/transparent"/>
+</vector>

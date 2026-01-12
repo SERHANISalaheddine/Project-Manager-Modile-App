@@ -1,0 +1,18 @@
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <item>
+        <shape>
+            <gradient
+                android:startColor="#6C4DFF"
+                android:endColor="#7B5CFF"
+                android:angle="0"/>
+        </shape>
+    </item>
+
+    <!-- fake curved bottom using big rounded rect pushed down -->
+    <item android:top="170dp">
+        <shape>
+            <solid android:color="#F8F9FE"/>
+            <corners android:topLeftRadius="28dp" android:topRightRadius="28dp"/>
+        </shape>
+    </item>
+</layer-list>
