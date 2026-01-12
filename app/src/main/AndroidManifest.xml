@@ -8,7 +8,7 @@
 
 
         <activity
-            android:name=".activities.WelcomeActivity"
+            android:name=".activities.TaskActivity"
             android:exported="true">
 
             <intent-filter>
@@ -31,7 +31,14 @@
         <activity android:name=".activities.VerifyNewPasswordActivity"
             android:exported="true"/>
 
+        <!-- Create Task screen -->
+        <activity
+            android:name=".activities.CreateTaskActivity"
+            android:exported="false" />
+
     </application>
     <uses-permission android:name="android.permission.INTERNET"/>
+
+
 
 </manifest>

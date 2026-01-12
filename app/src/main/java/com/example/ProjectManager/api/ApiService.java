@@ -3,16 +3,21 @@ package com.example.ProjectManager.api;
 import com.example.ProjectManager.models.dto.AddMemberRequest;
 import com.example.ProjectManager.models.dto.AuthResponseDto;
 import com.example.ProjectManager.models.dto.CreateProjectRequest;
+import com.example.ProjectManager.models.dto.CreateTaskRequest;
 import com.example.ProjectManager.models.dto.LoginRequestDto;
 import com.example.ProjectManager.models.dto.PageResponse;
 import com.example.ProjectManager.models.dto.ProjectResponse;
+import com.example.ProjectManager.models.dto.TaskResponse;
 import com.example.ProjectManager.models.dto.UserRequestDto;
 import com.example.ProjectManager.models.dto.UserResponseDto;
+
+import java.util.Map;
 
 import retrofit2.Call;
 import retrofit2.http.Body;
 import retrofit2.http.DELETE;
 import retrofit2.http.GET;
+import retrofit2.http.PATCH;
 import retrofit2.http.POST;
 import retrofit2.http.PUT;
 import retrofit2.http.Path;
@@ -70,4 +75,37 @@ public interface ApiService {
 
     @DELETE("/api/v1/projects/{projectId}/members/{userId}")
     Call<Void> removeMemberFromProject(@Path("projectId") long projectId, @Path("userId") long userId);
+
+    // ============== TASKS ==============
+
+    // Créer une tâche
+    @POST("/api/v1/tasks")
+    Call<TaskResponse> createTask(@Body CreateTaskRequest request);
+
+    // Récupérer une tâche par ID
+    @GET("/api/v1/tasks/{taskId}")
+    Call<TaskResponse> getTask(@Path("taskId") long taskId);
+
+    // Récupérer toutes les tâches
+    @GET("/api/v1/tasks")
+    Call<PageResponse<TaskResponse>> getAllTasks(
+            @Query("page") int page,
+            @Query("size") int size,
+            @Query("userId") Long userId,
+            @Query("projectId") Long projectId,
+            @Query("status") String status
+    );
+
+    // Mettre à jour une tâche
+    @PUT("/api/v1/tasks/{taskId}")
+    Call<TaskResponse> updateTask(@Path("taskId") long taskId, @Body CreateTaskRequest request);
+
+    // Mettre à jour uniquement le status
+    @PATCH("/api/v1/tasks/{taskId}/status")
+    Call<TaskResponse> updateTaskStatus(@Path("taskId") long taskId, @Body Map<String, String> status);
+
+    // Supprimer une tâche
+    @DELETE("/api/v1/tasks/{taskId}")
+    Call<Void> deleteTask(@Path("taskId") long taskId);
+
 }
