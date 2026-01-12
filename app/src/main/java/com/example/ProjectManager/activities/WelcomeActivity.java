@@ -41,18 +41,8 @@ public class WelcomeActivity extends AppCompatActivity {
             step++;
             updateUI();
         } else {
-<<<<<<< Updated upstream
-<<<<<<< Updated upstream
             // Sign In
             startActivity(new Intent(this, LoginActivity.class));
-=======
-            // Navigate to Onboarding for Sign In
-            startActivity(new Intent(this, OnboardingActivity.class));
->>>>>>> Stashed changes
-=======
-            // Navigate to Onboarding for Sign In
-            startActivity(new Intent(this, OnboardingActivity.class));
->>>>>>> Stashed changes
             finish();
         }
     }
@@ -65,10 +55,6 @@ public class WelcomeActivity extends AppCompatActivity {
         } else if (step > 1){
             step--;
             updateUI();
-        } else if (step == 4) {
-            // From step 4, "Skip" becomes "Sign up"
-            startActivity(new Intent(this, SignUpActivity.class));
-            finish();
         }
     }
 
@@ -77,8 +63,7 @@ public class WelcomeActivity extends AppCompatActivity {
 
             case 1:
                 titleText.setText("Welcome to Syncro!");
-                descText.setText(
-                        "Organize your tasks, projects, and ideas all in one place. Stay productive, stay in sync.");
+                descText.setText("Organize your tasks, projects, and ideas all in one place. Stay productive, stay in sync.");
                 progressBar.setVisibility(View.VISIBLE);
                 progressBar.setProgress(35);
                 btnNext.setText("Next");
@@ -112,3 +97,4 @@ public class WelcomeActivity extends AppCompatActivity {
         }
     }
 }
+
