@@ -127,7 +127,7 @@ public class SharedPrefsManager {
         editor.remove(KEY_USER_FIRST_NAME);
         editor.remove(KEY_USER_LAST_NAME);
         editor.remove(KEY_AUTH_TOKEN);
-        // Keep remember me preference
+        editor.remove(KEY_REMEMBER_ME);
         editor.apply();
     }
 

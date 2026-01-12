@@ -8,6 +8,7 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.LinearLayout;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
@@ -17,11 +18,20 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.ProjectManager.R;
 import com.example.ProjectManager.adapters.ProjectAdapter;
+import com.example.ProjectManager.api.ApiService;
+import com.example.ProjectManager.api.RetrofitClient;
 import com.example.ProjectManager.database.ProjectDatabaseHelper;
 import com.example.ProjectManager.models.Project;
+import com.example.ProjectManager.models.dto.PageResponse;
+import com.example.ProjectManager.models.dto.ProjectResponse;
 import com.example.ProjectManager.utils.SharedPrefsManager;
 
+import java.util.ArrayList;
 import java.util.List;
+
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
 
 /**
  * Main activity serving as the home dashboard for the app.
@@ -50,7 +60,10 @@ public class MainActivity extends AppCompatActivity implements ProjectAdapter.On
     private ProjectAdapter projectAdapter;
     private ProjectDatabaseHelper databaseHelper;
     private SharedPrefsManager prefsManager;
+    private ApiService apiService;
     private boolean isCreatedTabSelected = true;
+    private int createdProjectsCount = 0;
+    private int partOfProjectsCount = 0;
 
     // Activity Result Launcher for Create Project
     private final ActivityResultLauncher<Intent> createProjectLauncher = registerForActivityResult(
@@ -72,6 +85,9 @@ public class MainActivity extends AppCompatActivity implements ProjectAdapter.On
 
         // Initialize shared preferences manager
         prefsManager = SharedPrefsManager.getInstance(this);
+
+        // Initialize API service
+        apiService = RetrofitClient.getInstance(this).create(ApiService.class);
 
         // Initialize views
         initViews();
@@ -155,36 +171,166 @@ public class MainActivity extends AppCompatActivity implements ProjectAdapter.On
     }
 
     /**
-     * Load projects from database
+     * Load projects from API based on selected tab
      */
     private void loadProjects() {
+        long userId = prefsManager.getUserId();
+        if (userId <= 0) {
+            // User not logged in properly, show empty state
+            showEmptyState();
+            return;
+        }
+
+        if (isCreatedTabSelected) {
+            loadCreatedProjects(userId);
+        } else {
+            loadMemberProjects(userId);
+        }
+    }
+
+    /**
+     * Load projects owned by the user
+     * GET /api/v1/projects/owner/{userId}
+     */
+    private void loadCreatedProjects(long userId) {
+        Call<PageResponse<ProjectResponse>> call = apiService.getProjectsByOwner(userId, 0, 50);
+        call.enqueue(new Callback<PageResponse<ProjectResponse>>() {
+            @Override
+            public void onResponse(Call<PageResponse<ProjectResponse>> call,
+                    Response<PageResponse<ProjectResponse>> response) {
+                if (response.isSuccessful() && response.body() != null) {
+                    PageResponse<ProjectResponse> pageResponse = response.body();
+                    List<ProjectResponse> projectResponses = pageResponse.getContent();
+
+                    // Convert to Project model
+                    List<Project> projects = convertToProjects(projectResponses);
+                    createdProjectsCount = projects.size();
+
+                    projectAdapter.setProjects(projects);
+                    updateBadgeCounts();
+
+                    if (projects.isEmpty()) {
+                        showEmptyState();
+                    } else {
+                        hideEmptyState();
+                    }
+                } else {
+                    Toast.makeText(MainActivity.this,
+                            "Failed to load projects: " + response.code(),
+                            Toast.LENGTH_SHORT).show();
+                    showEmptyState();
+                }
+            }
+
+            @Override
+            public void onFailure(Call<PageResponse<ProjectResponse>> call, Throwable t) {
+                Toast.makeText(MainActivity.this,
+                        "Network error: " + t.getMessage(),
+                        Toast.LENGTH_SHORT).show();
+                // Fallback to local database
+                loadProjectsFromDatabase();
+            }
+        });
+    }
+
+    /**
+     * Load projects where the user is a member
+     * GET /api/v1/projects/member/{userId}
+     */
+    private void loadMemberProjects(long userId) {
+        Call<PageResponse<ProjectResponse>> call = apiService.getProjectsByMember(userId, 0, 50);
+        call.enqueue(new Callback<PageResponse<ProjectResponse>>() {
+            @Override
+            public void onResponse(Call<PageResponse<ProjectResponse>> call,
+                    Response<PageResponse<ProjectResponse>> response) {
+                if (response.isSuccessful() && response.body() != null) {
+                    PageResponse<ProjectResponse> pageResponse = response.body();
+                    List<ProjectResponse> projectResponses = pageResponse.getContent();
+
+                    // Convert to Project model
+                    List<Project> projects = convertToProjects(projectResponses);
+                    partOfProjectsCount = projects.size();
+
+                    projectAdapter.setProjects(projects);
+                    updateBadgeCounts();
+
+                    if (projects.isEmpty()) {
+                        showEmptyState();
+                    } else {
+                        hideEmptyState();
+                    }
+                } else {
+                    Toast.makeText(MainActivity.this,
+                            "Failed to load projects: " + response.code(),
+                            Toast.LENGTH_SHORT).show();
+                    showEmptyState();
+                }
+            }
+
+            @Override
+            public void onFailure(Call<PageResponse<ProjectResponse>> call, Throwable t) {
+                Toast.makeText(MainActivity.this,
+                        "Network error: " + t.getMessage(),
+                        Toast.LENGTH_SHORT).show();
+                showEmptyState();
+            }
+        });
+    }
+
+    /**
+     * Convert API ProjectResponse to local Project model
+     */
+    private List<Project> convertToProjects(List<ProjectResponse> projectResponses) {
+        List<Project> projects = new ArrayList<>();
+        if (projectResponses != null) {
+            for (ProjectResponse pr : projectResponses) {
+                Project project = new Project(
+                        pr.getId(),
+                        pr.getName(),
+                        pr.getDescription());
+                projects.add(project);
+            }
+        }
+        return projects;
+    }
+
+    /**
+     * Fallback: Load projects from local database
+     */
+    private void loadProjectsFromDatabase() {
         List<Project> projects = databaseHelper.getAllProjects();
         projectAdapter.setProjects(projects);
+        createdProjectsCount = projects.size();
+        updateBadgeCounts();
 
-        // Update badge count
-        updateBadgeCounts(projects.size());
-
-        // Show empty state if no projects
         if (projects.isEmpty()) {
-            rvProjects.setVisibility(View.GONE);
-            layoutEmptyState.setVisibility(View.VISIBLE);
+            showEmptyState();
         } else {
-            rvProjects.setVisibility(View.VISIBLE);
-            layoutEmptyState.setVisibility(View.GONE);
+            hideEmptyState();
         }
+    }
+
+    private void showEmptyState() {
+        rvProjects.setVisibility(View.GONE);
+        layoutEmptyState.setVisibility(View.VISIBLE);
+    }
+
+    private void hideEmptyState() {
+        rvProjects.setVisibility(View.VISIBLE);
+        layoutEmptyState.setVisibility(View.GONE);
     }
 
     /**
      * Update the badge counts on tabs
      */
-    private void updateBadgeCounts(int createdCount) {
-        tvCreatedBadge.setText(String.valueOf(createdCount));
+    private void updateBadgeCounts() {
+        // Created tab badge
+        tvCreatedBadge.setText(String.valueOf(createdProjectsCount));
+        tvCreatedBadge.setVisibility(createdProjectsCount > 0 ? View.VISIBLE : View.GONE);
 
-        if (createdCount > 0) {
-            tvCreatedBadge.setVisibility(View.VISIBLE);
-        } else {
-            tvCreatedBadge.setVisibility(View.GONE);
-        }
+        // Part Of tab badge
+        tvPartOfBadge.setText(String.valueOf(partOfProjectsCount));
+        tvPartOfBadge.setVisibility(partOfProjectsCount > 0 ? View.VISIBLE : View.GONE);
     }
 
     /**
@@ -217,12 +363,8 @@ public class MainActivity extends AppCompatActivity implements ProjectAdapter.On
         tvTabCreated.setTextColor(getResources().getColor(R.color.white, getTheme()));
         tvTabPartOf.setTextColor(getResources().getColor(R.color.purple_primary, getTheme()));
 
-        // Load projects user is part of (not implemented - would require user
-        // authentication)
-        // For now, show empty state
-        projectAdapter.setProjects(null);
-        rvProjects.setVisibility(View.GONE);
-        layoutEmptyState.setVisibility(View.VISIBLE);
+        // Load projects user is a member of from API
+        loadProjects();
     }
 
     /**
