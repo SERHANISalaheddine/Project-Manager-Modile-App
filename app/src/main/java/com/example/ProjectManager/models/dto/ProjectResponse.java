@@ -8,6 +8,8 @@ public class ProjectResponse {
     private String name;
     private String description;
     private Long ownerId;
+    private String startDate;    // Added
+    private String endDate;      // Added
     private String createdAt; // ISO date-time string from backend
     private String updatedAt; // ISO date-time string from backend
 
@@ -69,5 +71,21 @@ public class ProjectResponse {
 
     public void setUpdatedAt(String updatedAt) {
         this.updatedAt = updatedAt;
+    }
+
+    public String getStartDate() {
+        return startDate;
+    }
+
+    public void setStartDate(String startDate) {
+        this.startDate = startDate;
+    }
+
+    public String getEndDate() {
+        return endDate;
+    }
+
+    public void setEndDate(String endDate) {
+        this.endDate = endDate;
     }
 }

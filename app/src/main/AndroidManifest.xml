@@ -80,6 +80,58 @@
             android:name=".activities.CreateTaskActivity"
             android:exported="false" />
 
+        <!-- Profile & Settings Activities -->
+        <activity
+            android:name=".activities.ProfileActivity"
+            android:exported="false"
+            android:windowSoftInputMode="adjustResize" />
+
+        <activity
+            android:name=".activities.EditProfileActivity"
+            android:exported="false"
+            android:windowSoftInputMode="adjustResize" />
+
+        <activity
+            android:name=".activities.ChangePasswordActivity"
+            android:exported="false"
+            android:windowSoftInputMode="adjustResize" />
+
+        <activity
+            android:name=".activities.SettingsActivity"
+            android:exported="false" />
+
+        <activity
+            android:name=".activities.NotificationsActivity"
+            android:exported="false" />
+
+        <activity
+            android:name=".activities.ProjectDetailActivity"
+            android:exported="false" />
+
+        <activity
+            android:name=".activities.TaskDetailActivity"
+            android:exported="false" />
+
+        <activity
+            android:name=".activities.EditProjectActivity"
+            android:exported="false"
+            android:windowSoftInputMode="adjustResize" />
+
+        <activity
+            android:name=".activities.SearchActivity"
+            android:exported="false"
+            android:windowSoftInputMode="adjustResize" />
+
+        <!-- Projects List Activity -->
+        <activity
+            android:name=".activities.ProjectsActivity"
+            android:exported="false" />
+
+        <!-- My Tasks Activity -->
+        <activity
+            android:name=".activities.MyTasksActivity"
+            android:exported="false" />
+
     </application>
 
 </manifest>

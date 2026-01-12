@@ -47,4 +47,12 @@ dependencies {
     androidTestImplementation(libs.ext.junit)
     androidTestImplementation(libs.espresso.core)
     implementation(libs.cardview)
+    
+    // Modern UI Libraries
+    implementation(libs.glide)
+    implementation(libs.circleimageview)
+    implementation(libs.swiperefreshlayout)
+    implementation(libs.viewpager2)
+    implementation(libs.shimmer)
+    implementation(libs.lottie)
 }

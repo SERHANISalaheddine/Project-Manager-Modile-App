@@ -1,12 +1,24 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <!-- Primary Purple Theme Colors -->
-    <color name="purple_primary">#7C6FDC</color>
-    <color name="purple_primary_dark">#6B5FCB</color>
-    <color name="purple_light">#A99EE8</color>
-    <color name="purple_very_light">#E8E5F8</color>
+    <!-- Modern Color Palette - Inspired by Syncro Web App -->
     
-    <!-- Legacy Purple Colors -->
+    <!-- Primary Colors (Indigo) -->
+    <color name="primary">#4F46E5</color>
+    <color name="primary_variant">#4338CA</color>
+    <color name="primary_light">#818CF8</color>
+    <color name="primary_surface">#EEF2FF</color>
+    <color name="primary_10">#1A4F46E5</color>
+    
+    <!-- Secondary Colors (Violet) -->
+    <color name="secondary">#6366F1</color>
+    <color name="secondary_variant">#5B21B6</color>
+    <color name="secondary_light">#A78BFA</color>
+    
+    <!-- Legacy Purple Colors (for compatibility) -->
+    <color name="purple_primary">#4F46E5</color>
+    <color name="purple_primary_dark">#4338CA</color>
+    <color name="purple_light">#818CF8</color>
+    <color name="purple_very_light">#EEF2FF</color>
     <color name="purple_200">#FFBB86FC</color>
     <color name="purple_500">#FF6200EE</color>
     <color name="purple_700">#FF3700B3</color>
@@ -18,30 +30,101 @@
     <!-- Basic Colors -->
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
+    <color name="transparent">#00000000</color>
     
     <!-- Background Colors -->
-    <color name="background_light">#F5F5F9</color>
+    <color name="background">#F8FAFC</color>
+    <color name="background_light">#F8FAFC</color>
+    <color name="background_dark">#0F172A</color>
     <color name="background_white">#FFFFFF</color>
+    <color name="surface">#FFFFFF</color>
+    <color name="surface_light">#FFFFFF</color>
+    <color name="surface_dark">#1E293B</color>
     <color name="card_background">#FFFFFF</color>
+    <color name="card_background_elevated">#FFFFFF</color>
     
     <!-- Text Colors -->
-    <color name="text_primary">#1F1F1F</color>
-    <color name="text_secondary">#666666</color>
-    <color name="text_hint">#999999</color>
+    <color name="text_primary">#1E293B</color>
+    <color name="text_secondary">#64748B</color>
+    <color name="text_tertiary">#94A3B8</color>
+    <color name="text_hint">#94A3B8</color>
+    <color name="text_muted">#9CA3AF</color>
+    <color name="muted">#E5E7EB</color>
+    <color name="text_on_primary">#FFFFFF</color>
+    
+    <!-- Status Colors -->
+    <color name="status_todo">#64748B</color>
+    <color name="status_todo_bg">#F1F5F9</color>
+    <color name="status_in_progress">#3B82F6</color>
+    <color name="status_in_progress_bg">#EFF6FF</color>
+    <color name="status_done">#10B981</color>
+    <color name="status_done_bg">#ECFDF5</color>
+    <color name="status_archived">#6B7280</color>
+    <color name="status_archived_bg">#F3F4F6</color>
     
     <!-- Accent Colors -->
-    <color name="accent_red">#FF4757</color>
-    <color name="badge_red">#E74C3C</color>
+    <color name="warning">#F59E0B</color>
+    <color name="warning_bg">#FFFBEB</color>
+    <color name="error">#EF4444</color>
+    <color name="error_bg">#FEF2F2</color>
+    <color name="success">#10B981</color>
+    <color name="success_bg">#ECFDF5</color>
+    <color name="info">#3B82F6</color>
+    <color name="info_bg">#EFF6FF</color>
+    <color name="accent_red">#EF4444</color>
+    <color name="badge_red">#EF4444</color>
+    <color name="status_error">#EF4444</color>
+    
+    <!-- Border & Divider -->
+    <color name="divider">#E2E8F0</color>
+    <color name="border">#E2E8F0</color>
     
     <!-- Button Colors -->
-    <color name="button_purple">#7C6FDC</color>
-    <color name="button_purple_pressed">#6B5FCB</color>
+    <color name="button_purple">#4F46E5</color>
+    <color name="button_purple_pressed">#4338CA</color>
     <color name="button_cancel">#FFFFFF</color>
     
     <!-- Input Field Colors -->
-    <color name="input_border">#E0E0E0</color>
-    <color name="input_border_focused">#7C6FDC</color>
+    <color name="input_background">#F8FAFC</color>
+    <color name="input_border">#E2E8F0</color>
+    <color name="input_border_focused">#4F46E5</color>
     
-    <!-- Divider Color -->
-    <color name="divider">#EEEEEE</color>
+    <!-- Navigation -->
+    <color name="nav_active">#4F46E5</color>
+    <color name="nav_inactive">#94A3B8</color>
+    <color name="nav_background">#FFFFFF</color>
+    
+    <!-- Gradient Colors -->
+    <color name="gradient_start">#4F46E5</color>
+    <color name="gradient_center">#6366F1</color>
+    <color name="gradient_end">#7C3AED</color>
+    
+    <!-- Avatar Colors -->
+    <color name="avatar_1">#4F46E5</color>
+    <color name="avatar_2">#7C3AED</color>
+    <color name="avatar_3">#EC4899</color>
+    <color name="avatar_4">#F59E0B</color>
+    <color name="avatar_5">#10B981</color>
+    <color name="avatar_6">#06B6D4</color>
+    
+    <!-- Priority Colors -->
+    <color name="priority_high">#EF4444</color>
+    <color name="priority_medium">#F59E0B</color>
+    <color name="priority_low">#10B981</color>
+    
+    <!-- Shimmer/Loading -->
+    <color name="shimmer_base">#E2E8F0</color>
+    <color name="shimmer_highlight">#F8FAFC</color>
+    <color name="progress_background">#E2E8F0</color>
+
+    <!-- Ripple Colors -->
+    <color name="ripple_light">#1A4F46E5</color>
+
+    <!-- Switch Colors -->
+    <color name="switch_thumb_color">@color/primary</color>
+    <color name="switch_track_color">@color/primary_light</color>
+    
+    <!-- Overlay -->
+    <color name="overlay">#66000000</color>
+    <color name="overlay_light">#33000000</color>
 </resources>

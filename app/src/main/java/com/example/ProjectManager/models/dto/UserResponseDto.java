@@ -9,6 +9,7 @@ public class UserResponseDto {
     private String lastName;
     private String email;
     private String verificationToken;
+    private String profilePictureUrl;
 
     public UserResponseDto() {
     }
@@ -58,5 +59,13 @@ public class UserResponseDto {
 
     public void setVerificationToken(String verificationToken) {
         this.verificationToken = verificationToken;
+    }
+
+    public String getProfilePictureUrl() {
+        return profilePictureUrl;
+    }
+
+    public void setProfilePictureUrl(String profilePictureUrl) {
+        this.profilePictureUrl = profilePictureUrl;
     }
 }

@@ -2,11 +2,9 @@ package com.example.ProjectManager.activities;
 
 import android.content.Intent;
 import android.os.Bundle;
-import android.view.Menu;
-import android.view.MenuItem;
 import android.view.View;
-import android.widget.Button;
 import android.widget.LinearLayout;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -16,63 +14,110 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.bumptech.glide.Glide;
 import com.example.ProjectManager.R;
-import com.example.ProjectManager.adapters.ProjectAdapter;
+import com.example.ProjectManager.adapters.DashboardProjectAdapter;
+import com.example.ProjectManager.adapters.DashboardTaskAdapter;
 import com.example.ProjectManager.api.ApiService;
 import com.example.ProjectManager.api.RetrofitClient;
-import com.example.ProjectManager.database.ProjectDatabaseHelper;
-import com.example.ProjectManager.models.Project;
 import com.example.ProjectManager.models.dto.PageResponse;
 import com.example.ProjectManager.models.dto.ProjectResponse;
-import com.example.ProjectManager.utils.SharedPrefsManager;
+import com.example.ProjectManager.models.dto.TaskResponse;
+import com.example.ProjectManager.models.dto.UserResponseDto;
 import com.example.ProjectManager.utils.NavigationUtils;
+import com.example.ProjectManager.utils.SharedPrefsManager;
+import com.google.android.material.button.MaterialButton;
 
 import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
+import de.hdodenhof.circleimageview.CircleImageView;
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
 
 /**
- * Main activity serving as the home dashboard for the app.
- * Displays a list of projects and provides navigation to create new projects.
+ * Main Dashboard Activity - Matches web app design.
+ * Shows greeting, stats cards, progress overview, recent projects, and upcoming tasks.
  */
-public class MainActivity extends AppCompatActivity implements ProjectAdapter.OnProjectClickListener {
+public class MainActivity extends AppCompatActivity {
 
-    // UI Components
-    private LinearLayout tabCreated;
-    private LinearLayout tabPartOf;
-    private TextView tvTabCreated;
-    private TextView tvTabPartOf;
-    private TextView tvCreatedBadge;
-    private TextView tvPartOfBadge;
-    private RecyclerView rvProjects;
-    private LinearLayout layoutEmptyState;
-    private Button btnCreateProject;
+    // Header Views
+    private TextView tvGreeting;
+    private TextView tvUserName;
+    private CircleImageView ivProfile;
+    private MaterialButton btnNewProject;
+    private MaterialButton btnNewTask;
 
-    // Navigation
+    // Stats Cards
+    private TextView tvTotalProjects;
+    private TextView tvProjectDetails;
+    private TextView tvTotalTasks;
+    private TextView tvTaskDetails;
+    private TextView tvInProgress;
+    private TextView tvCompleted;
+    private TextView tvCompletedDetails;
+
+    // Progress Overview
+    private TextView tvProgressPercent;
+    private ProgressBar progressBar;
+    private TextView tvTodoCount;
+    private TextView tvActiveCount;
+    private TextView tvDoneCount;
+
+    // RecyclerViews
+    private RecyclerView rvRecentProjects;
+    private RecyclerView rvUpcomingTasks;
+    private TextView tvEmptyProjects;
+    private TextView tvEmptyTasks;
+    private TextView btnViewAllProjects;
+    private TextView btnViewAllTasks;
+
+    // Bottom Navigation
     private LinearLayout navHome;
-    private LinearLayout navCalendar;
+    private LinearLayout navProjects;
     private LinearLayout navTasks;
     private LinearLayout navProfile;
 
-    // Data
-    private ProjectAdapter projectAdapter;
-    private ProjectDatabaseHelper databaseHelper;
-    private SharedPrefsManager prefsManager;
-    private ApiService apiService;
-    private boolean isCreatedTabSelected = true;
-    private int createdProjectsCount = 0;
-    private int partOfProjectsCount = 0;
+    // Adapters
+    private DashboardProjectAdapter projectAdapter;
+    private DashboardTaskAdapter taskAdapter;
 
-    // Activity Result Launcher for Create Project
+    // Data
+    private ApiService apiService;
+    private SharedPrefsManager prefsManager;
+    private long userId;
+
+    // Project name cache for tasks
+    private Map<Long, String> projectNameCache = new HashMap<>();
+
+    // Stats
+    private int ownedProjectsCount = 0;
+    private int memberProjectsCount = 0;
+    private int totalTasksCount = 0;
+    private int todoCount = 0;
+    private int inProgressCount = 0;
+    private int doneCount = 0;
+
+    // Activity launchers
     private final ActivityResultLauncher<Intent> createProjectLauncher = registerForActivityResult(
             new ActivityResultContracts.StartActivityForResult(),
             result -> {
                 if (result.getResultCode() == RESULT_OK) {
-                    // Refresh project list when a new project is created
-                    loadProjects();
+                    loadDashboardData();
+                }
+            });
+
+    private final ActivityResultLauncher<Intent> createTaskLauncher = registerForActivityResult(
+            new ActivityResultContracts.StartActivityForResult(),
+            result -> {
+                if (result.getResultCode() == RESULT_OK) {
+                    loadDashboardData();
                 }
             });
 
@@ -81,422 +126,362 @@ public class MainActivity extends AppCompatActivity implements ProjectAdapter.On
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        // Initialize database helper
-        databaseHelper = new ProjectDatabaseHelper(this);
-
-        // Initialize shared preferences manager
+        // Initialize
         prefsManager = SharedPrefsManager.getInstance(this);
-
-        // Initialize API service
         apiService = RetrofitClient.getInstance(this).create(ApiService.class);
+        userId = prefsManager.getUserId();
 
-        // Initialize views
-        initViews();
-
-        // Setup listeners
-        setupListeners();
-
-        // Setup RecyclerView
-        setupRecyclerView();
-
-        // Update navigation to highlight home icon
-        NavigationUtils.updateNavigation(navHome, navCalendar, navTasks, navProfile, "home");
-
-        // Load projects
-        loadProjects();
-    }
-
-    /**
-     * Initialize view references
-     */
-    private void initViews() {
-        // Tabs
-        tabCreated = findViewById(R.id.tab_created);
-        tabPartOf = findViewById(R.id.tab_part_of);
-        tvTabCreated = findViewById(R.id.tv_tab_created);
-        tvTabPartOf = findViewById(R.id.tv_tab_part_of);
-        tvCreatedBadge = findViewById(R.id.tv_created_badge);
-        tvPartOfBadge = findViewById(R.id.tv_part_of_badge);
-
-        // Content
-        rvProjects = findViewById(R.id.rv_projects);
-        layoutEmptyState = findViewById(R.id.layout_empty_state);
-        btnCreateProject = findViewById(R.id.btn_create_project);
-
-        // Bottom Navigation
-        navHome = findViewById(R.id.nav_home);
-        navCalendar = findViewById(R.id.nav_calendar);
-        navTasks = findViewById(R.id.nav_tasks);
-        navProfile = findViewById(R.id.nav_profile);
-    }
-
-    /**
-     * Setup click listeners
-     */
-    private void setupListeners() {
-        // Tab listeners
-        tabCreated.setOnClickListener(v -> selectCreatedTab());
-        tabPartOf.setOnClickListener(v -> selectPartOfTab());
-
-        // Create project button
-        btnCreateProject.setOnClickListener(v -> openCreateProjectScreen());
-
-        // Bottom navigation listeners
-        navHome.setOnClickListener(v -> {
-            // Already on home, do nothing or refresh
-            loadProjects();
-        });
-
-        navCalendar.setOnClickListener(v -> {
-            // Navigate to calendar (not implemented)
-            showFeatureNotAvailable("Calendar");
-        });
-
-        navTasks.setOnClickListener(v -> {
-            // Navigate to last opened project's tasks
-            openTasksForLastProject();
-        });
-
-        navProfile.setOnClickListener(v -> {
-            // Navigate to profile (not implemented)
-            showFeatureNotAvailable("Profile");
-        });
-    }
-
-    /**
-     * Setup the RecyclerView with adapter
-     */
-    private void setupRecyclerView() {
-        projectAdapter = new ProjectAdapter();
-        projectAdapter.setOnProjectClickListener(this);
-
-        rvProjects.setLayoutManager(new LinearLayoutManager(this));
-        rvProjects.setAdapter(projectAdapter);
-    }
-
-    /**
-     * Load projects from API based on selected tab
-     */
-    private void loadProjects() {
-        long userId = prefsManager.getUserId();
+        // Check login
         if (userId <= 0) {
-            // User not logged in properly, show empty state
-            showEmptyState();
+            navigateToLogin();
             return;
         }
 
-        if (isCreatedTabSelected) {
-            loadCreatedProjects(userId);
-        } else {
-            loadMemberProjects(userId);
-        }
+        initViews();
+        setupAdapters();
+        setupListeners();
+        updateGreeting();
+        loadUserProfile();
+        loadDashboardData();
     }
 
-    /**
-     * Load projects owned by the user
-     * GET /api/v1/projects/owner/{userId}
-     */
-    private void loadCreatedProjects(long userId) {
-        Call<PageResponse<ProjectResponse>> call = apiService.getProjectsByOwner(userId, 0, 50);
-        call.enqueue(new Callback<PageResponse<ProjectResponse>>() {
+    private void initViews() {
+        // Header
+        tvGreeting = findViewById(R.id.tv_greeting);
+        tvUserName = findViewById(R.id.tv_user_name);
+        ivProfile = findViewById(R.id.iv_profile);
+        btnNewProject = findViewById(R.id.btn_new_project);
+        btnNewTask = findViewById(R.id.btn_new_task);
+
+        // Stats Cards
+        tvTotalProjects = findViewById(R.id.tv_total_projects);
+        tvProjectDetails = findViewById(R.id.tv_project_details);
+        tvTotalTasks = findViewById(R.id.tv_total_tasks);
+        tvTaskDetails = findViewById(R.id.tv_task_details);
+        tvInProgress = findViewById(R.id.tv_in_progress);
+        tvCompleted = findViewById(R.id.tv_completed);
+        tvCompletedDetails = findViewById(R.id.tv_completed_details);
+
+        // Progress Overview
+        tvProgressPercent = findViewById(R.id.tv_progress_percent);
+        progressBar = findViewById(R.id.progress_bar);
+        tvTodoCount = findViewById(R.id.tv_todo_count);
+        tvActiveCount = findViewById(R.id.tv_active_count);
+        tvDoneCount = findViewById(R.id.tv_done_count);
+
+        // RecyclerViews
+        rvRecentProjects = findViewById(R.id.rv_recent_projects);
+        rvUpcomingTasks = findViewById(R.id.rv_upcoming_tasks);
+        tvEmptyProjects = findViewById(R.id.tv_empty_projects);
+        tvEmptyTasks = findViewById(R.id.tv_empty_tasks);
+        btnViewAllProjects = findViewById(R.id.btn_view_all_projects);
+        btnViewAllTasks = findViewById(R.id.btn_view_all_tasks);
+
+        // Bottom Navigation
+        navHome = findViewById(R.id.nav_home);
+        navProjects = findViewById(R.id.nav_projects);
+        navTasks = findViewById(R.id.nav_tasks);
+        navProfile = findViewById(R.id.nav_profile);
+
+        // Update navigation
+        NavigationUtils.updateNavigation(navHome, navProjects, navTasks, navProfile, "home");
+        NavigationUtils.setupNavigationListeners(this, navHome, navProjects, navTasks, navProfile);
+    }
+
+    private void setupAdapters() {
+        // Projects adapter
+        projectAdapter = new DashboardProjectAdapter();
+        projectAdapter.setOnProjectClickListener(project -> {
+            Intent intent = new Intent(this, ProjectDetailActivity.class);
+            intent.putExtra(ProjectDetailActivity.EXTRA_PROJECT_ID, project.getId());
+            startActivity(intent);
+        });
+        rvRecentProjects.setLayoutManager(new LinearLayoutManager(this));
+        rvRecentProjects.setAdapter(projectAdapter);
+
+        // Tasks adapter
+        taskAdapter = new DashboardTaskAdapter();
+        taskAdapter.setOnTaskClickListener(task -> {
+            Intent intent = new Intent(this, TaskDetailActivity.class);
+            intent.putExtra("taskId", task.getId());
+            intent.putExtra("projectId", task.getProjectId());
+            startActivity(intent);
+        });
+        rvUpcomingTasks.setLayoutManager(new LinearLayoutManager(this));
+        rvUpcomingTasks.setAdapter(taskAdapter);
+    }
+
+    private void setupListeners() {
+        // Profile click
+        ivProfile.setOnClickListener(v -> {
+            startActivity(new Intent(this, ProfileActivity.class));
+        });
+
+        // New Project button
+        btnNewProject.setOnClickListener(v -> {
+            Intent intent = new Intent(this, CreateProjectActivity.class);
+            createProjectLauncher.launch(intent);
+        });
+
+        // New Task button
+        btnNewTask.setOnClickListener(v -> {
+            if (ownedProjectsCount + memberProjectsCount > 0) {
+                Intent intent = new Intent(this, CreateTaskActivity.class);
+                createTaskLauncher.launch(intent);
+            } else {
+                Toast.makeText(this, "Create a project first!", Toast.LENGTH_SHORT).show();
+            }
+        });
+
+        // View all projects
+        btnViewAllProjects.setOnClickListener(v -> {
+            startActivity(new Intent(this, ProjectsActivity.class));
+        });
+
+        // View all tasks
+        btnViewAllTasks.setOnClickListener(v -> {
+            startActivity(new Intent(this, MyTasksActivity.class));
+        });
+    }
+
+    private void updateGreeting() {
+        int hour = Calendar.getInstance().get(Calendar.HOUR_OF_DAY);
+        String greeting;
+        if (hour < 12) {
+            greeting = "Good Morning";
+        } else if (hour < 18) {
+            greeting = "Good Afternoon";
+        } else {
+            greeting = "Good Evening";
+        }
+        tvGreeting.setText(greeting);
+    }
+
+    private void loadUserProfile() {
+        String firstName = prefsManager.getUserFirstName();
+        if (firstName != null && !firstName.isEmpty()) {
+            tvUserName.setText("Welcome, " + firstName + "!");
+        }
+
+        apiService.getUser(userId).enqueue(new Callback<UserResponseDto>() {
             @Override
-            public void onResponse(Call<PageResponse<ProjectResponse>> call,
-                    Response<PageResponse<ProjectResponse>> response) {
+            public void onResponse(Call<UserResponseDto> call, Response<UserResponseDto> response) {
                 if (response.isSuccessful() && response.body() != null) {
-                    PageResponse<ProjectResponse> pageResponse = response.body();
-                    List<ProjectResponse> projectResponses = pageResponse.getContent();
+                    UserResponseDto user = response.body();
+                    tvUserName.setText("Welcome, " + user.getFirstName() + "!");
 
-                    // Convert to Project model
-                    List<Project> projects = convertToProjects(projectResponses);
-                    createdProjectsCount = projects.size();
-
-                    projectAdapter.setProjects(projects);
-                    updateBadgeCounts();
-
-                    if (projects.isEmpty()) {
-                        showEmptyState();
-                    } else {
-                        hideEmptyState();
+                    String profilePicUrl = user.getProfilePictureUrl();
+                    if (profilePicUrl != null && !profilePicUrl.isEmpty()) {
+                        String fullUrl = com.example.ProjectManager.utils.Constants.BASE_URL + profilePicUrl;
+                        Glide.with(MainActivity.this)
+                                .load(fullUrl)
+                                .placeholder(R.drawable.ic_profile)
+                                .error(R.drawable.ic_profile)
+                                .into(ivProfile);
                     }
-                } else {
-                    Toast.makeText(MainActivity.this,
-                            "Failed to load projects: " + response.code(),
-                            Toast.LENGTH_SHORT).show();
-                    showEmptyState();
                 }
             }
 
             @Override
-            public void onFailure(Call<PageResponse<ProjectResponse>> call, Throwable t) {
-                Toast.makeText(MainActivity.this,
-                        "Network error: " + t.getMessage(),
-                        Toast.LENGTH_SHORT).show();
-                // Fallback to local database
-                loadProjectsFromDatabase();
+            public void onFailure(Call<UserResponseDto> call, Throwable t) {
             }
         });
     }
 
-    /**
-     * Load projects where the user is a member
-     * GET /api/v1/projects/member/{userId}
-     */
-    private void loadMemberProjects(long userId) {
-        Call<PageResponse<ProjectResponse>> call = apiService.getProjectsByMember(userId, 0, 50);
-        call.enqueue(new Callback<PageResponse<ProjectResponse>>() {
+    private void loadDashboardData() {
+        ownedProjectsCount = 0;
+        memberProjectsCount = 0;
+        projectNameCache.clear();
+        loadOwnedProjects();
+    }
+
+    private void loadOwnedProjects() {
+        apiService.getProjectsByOwner(userId, 0, 50).enqueue(new Callback<PageResponse<ProjectResponse>>() {
             @Override
-            public void onResponse(Call<PageResponse<ProjectResponse>> call,
-                    Response<PageResponse<ProjectResponse>> response) {
+            public void onResponse(Call<PageResponse<ProjectResponse>> call, Response<PageResponse<ProjectResponse>> response) {
+                List<DashboardProjectAdapter.ProjectItem> allProjects = new ArrayList<>();
+                
                 if (response.isSuccessful() && response.body() != null) {
-                    PageResponse<ProjectResponse> pageResponse = response.body();
-                    List<ProjectResponse> projectResponses = pageResponse.getContent();
-
-                    // Convert to Project model
-                    List<Project> projects = convertToProjects(projectResponses);
-                    partOfProjectsCount = projects.size();
-
-                    projectAdapter.setProjects(projects);
-                    updateBadgeCounts();
-
-                    if (projects.isEmpty()) {
-                        showEmptyState();
-                    } else {
-                        hideEmptyState();
+                    List<ProjectResponse> owned = response.body().getContent();
+                    ownedProjectsCount = owned.size();
+                    
+                    for (ProjectResponse p : owned) {
+                        allProjects.add(new DashboardProjectAdapter.ProjectItem(
+                                p.getId(), p.getName(), p.getDescription(), true));
+                        projectNameCache.put(p.getId(), p.getName());
                     }
+                }
+                
+                loadMemberProjects(allProjects);
+            }
+
+            @Override
+            public void onFailure(Call<PageResponse<ProjectResponse>> call, Throwable t) {
+                loadMemberProjects(new ArrayList<>());
+            }
+        });
+    }
+
+    private void loadMemberProjects(List<DashboardProjectAdapter.ProjectItem> allProjects) {
+        apiService.getProjectsByMember(userId, 0, 50).enqueue(new Callback<PageResponse<ProjectResponse>>() {
+            @Override
+            public void onResponse(Call<PageResponse<ProjectResponse>> call, Response<PageResponse<ProjectResponse>> response) {
+                Set<Long> existingIds = new HashSet<>();
+                for (DashboardProjectAdapter.ProjectItem p : allProjects) {
+                    existingIds.add(p.getId());
+                }
+                
+                if (response.isSuccessful() && response.body() != null) {
+                    List<ProjectResponse> member = response.body().getContent();
+                    
+                    for (ProjectResponse p : member) {
+                        if (!existingIds.contains(p.getId())) {
+                            allProjects.add(new DashboardProjectAdapter.ProjectItem(
+                                    p.getId(), p.getName(), p.getDescription(), false));
+                            existingIds.add(p.getId());
+                            projectNameCache.put(p.getId(), p.getName());
+                        }
+                    }
+                    memberProjectsCount = member.size();
+                }
+                
+                updateProjectsUI(allProjects);
+                loadTasks();
+            }
+
+            @Override
+            public void onFailure(Call<PageResponse<ProjectResponse>> call, Throwable t) {
+                updateProjectsUI(allProjects);
+                loadTasks();
+            }
+        });
+    }
+
+    private void updateProjectsUI(List<DashboardProjectAdapter.ProjectItem> allProjects) {
+        int totalProjects = allProjects.size();
+        tvTotalProjects.setText(String.valueOf(totalProjects));
+        tvProjectDetails.setText(ownedProjectsCount + " owned - " + memberProjectsCount + " member");
+
+        List<DashboardProjectAdapter.ProjectItem> recentProjects = allProjects.size() > 5 
+                ? allProjects.subList(0, 5) : allProjects;
+        
+        projectAdapter.setProjects(recentProjects);
+
+        if (allProjects.isEmpty()) {
+            rvRecentProjects.setVisibility(View.GONE);
+            tvEmptyProjects.setVisibility(View.VISIBLE);
+        } else {
+            rvRecentProjects.setVisibility(View.VISIBLE);
+            tvEmptyProjects.setVisibility(View.GONE);
+        }
+    }
+
+    private void loadTasks() {
+        apiService.getAllTasks(0, 100, userId, null, null).enqueue(new Callback<PageResponse<TaskResponse>>() {
+            @Override
+            public void onResponse(Call<PageResponse<TaskResponse>> call, Response<PageResponse<TaskResponse>> response) {
+                if (response.isSuccessful() && response.body() != null) {
+                    List<TaskResponse> tasks = response.body().getContent();
+                    processTasks(tasks);
                 } else {
-                    Toast.makeText(MainActivity.this,
-                            "Failed to load projects: " + response.code(),
-                            Toast.LENGTH_SHORT).show();
-                    showEmptyState();
+                    updateTasksUI(new ArrayList<>());
                 }
             }
 
             @Override
-            public void onFailure(Call<PageResponse<ProjectResponse>> call, Throwable t) {
-                Toast.makeText(MainActivity.this,
-                        "Network error: " + t.getMessage(),
-                        Toast.LENGTH_SHORT).show();
-                showEmptyState();
+            public void onFailure(Call<PageResponse<TaskResponse>> call, Throwable t) {
+                updateTasksUI(new ArrayList<>());
             }
         });
     }
 
-    /**
-     * Convert API ProjectResponse to local Project model
-     */
-    private List<Project> convertToProjects(List<ProjectResponse> projectResponses) {
-        List<Project> projects = new ArrayList<>();
-        if (projectResponses != null) {
-            for (ProjectResponse pr : projectResponses) {
-                Project project = new Project(
-                        pr.getId(),
-                        pr.getName(),
-                        pr.getDescription());
-                projects.add(project);
+    private void processTasks(List<TaskResponse> tasks) {
+        totalTasksCount = tasks.size();
+        todoCount = 0;
+        inProgressCount = 0;
+        doneCount = 0;
+
+        List<DashboardTaskAdapter.TaskItem> upcomingTasks = new ArrayList<>();
+
+        for (TaskResponse task : tasks) {
+            String status = task.getStatus();
+            
+            switch (status) {
+                case "TODO":
+                    todoCount++;
+                    break;
+                case "IN_PROGRESS":
+                    inProgressCount++;
+                    break;
+                case "DONE":
+                    doneCount++;
+                    break;
+            }
+
+            if (!"DONE".equals(status) && !"ARCHIVED".equals(status)) {
+                String projectName = projectNameCache.get(task.getProjectId());
+                upcomingTasks.add(new DashboardTaskAdapter.TaskItem(
+                        task.getId(),
+                        task.getName(),
+                        status,
+                        task.getProjectId(),
+                        projectName != null ? projectName : "Project #" + task.getProjectId()
+                ));
             }
         }
-        return projects;
+
+        upcomingTasks.sort((a, b) -> {
+            if ("IN_PROGRESS".equals(a.getStatus()) && !"IN_PROGRESS".equals(b.getStatus())) {
+                return -1;
+            } else if (!"IN_PROGRESS".equals(a.getStatus()) && "IN_PROGRESS".equals(b.getStatus())) {
+                return 1;
+            }
+            return 0;
+        });
+
+        updateTasksUI(upcomingTasks);
     }
 
-    /**
-     * Fallback: Load projects from local database
-     */
-    private void loadProjectsFromDatabase() {
-        List<Project> projects = databaseHelper.getAllProjects();
-        projectAdapter.setProjects(projects);
-        createdProjectsCount = projects.size();
-        updateBadgeCounts();
+    private void updateTasksUI(List<DashboardTaskAdapter.TaskItem> upcomingTasks) {
+        tvTotalTasks.setText(String.valueOf(totalTasksCount));
+        tvInProgress.setText(String.valueOf(inProgressCount));
+        tvCompleted.setText(String.valueOf(doneCount));
+        
+        tvTodoCount.setText(String.valueOf(todoCount));
+        tvActiveCount.setText(String.valueOf(inProgressCount));
+        tvDoneCount.setText(String.valueOf(doneCount));
 
-        if (projects.isEmpty()) {
-            showEmptyState();
+        int progress = totalTasksCount > 0 ? (doneCount * 100 / totalTasksCount) : 0;
+        tvProgressPercent.setText(progress + "%");
+        progressBar.setProgress(progress);
+
+        List<DashboardTaskAdapter.TaskItem> recentTasks = upcomingTasks.size() > 5 
+                ? upcomingTasks.subList(0, 5) : upcomingTasks;
+        
+        taskAdapter.setTasks(recentTasks);
+
+        if (upcomingTasks.isEmpty()) {
+            rvUpcomingTasks.setVisibility(View.GONE);
+            tvEmptyTasks.setVisibility(View.VISIBLE);
         } else {
-            hideEmptyState();
+            rvUpcomingTasks.setVisibility(View.VISIBLE);
+            tvEmptyTasks.setVisibility(View.GONE);
         }
     }
 
-    private void showEmptyState() {
-        rvProjects.setVisibility(View.GONE);
-        layoutEmptyState.setVisibility(View.VISIBLE);
-    }
-
-    private void hideEmptyState() {
-        rvProjects.setVisibility(View.VISIBLE);
-        layoutEmptyState.setVisibility(View.GONE);
-    }
-
-    /**
-     * Update the badge counts on tabs
-     */
-    private void updateBadgeCounts() {
-        // Created tab badge
-        tvCreatedBadge.setText(String.valueOf(createdProjectsCount));
-        tvCreatedBadge.setVisibility(createdProjectsCount > 0 ? View.VISIBLE : View.GONE);
-
-        // Part Of tab badge
-        tvPartOfBadge.setText(String.valueOf(partOfProjectsCount));
-        tvPartOfBadge.setVisibility(partOfProjectsCount > 0 ? View.VISIBLE : View.GONE);
-    }
-
-    /**
-     * Select the "Created" tab
-     */
-    private void selectCreatedTab() {
-        isCreatedTabSelected = true;
-
-        // Update tab appearance
-        tabCreated.setSelected(true);
-        tabPartOf.setSelected(false);
-
-        tvTabCreated.setTextColor(getResources().getColor(R.color.purple_primary, getTheme()));
-        tvTabPartOf.setTextColor(getResources().getColor(R.color.white, getTheme()));
-
-        // Load created projects
-        loadProjects();
-    }
-
-    /**
-     * Select the "Part Of" tab
-     */
-    private void selectPartOfTab() {
-        isCreatedTabSelected = false;
-
-        // Update tab appearance
-        tabCreated.setSelected(false);
-        tabPartOf.setSelected(true);
-
-        tvTabCreated.setTextColor(getResources().getColor(R.color.white, getTheme()));
-        tvTabPartOf.setTextColor(getResources().getColor(R.color.purple_primary, getTheme()));
-
-        // Load projects user is a member of from API
-        loadProjects();
-    }
-
-    /**
-     * Open the create project screen
-     */
-    private void openCreateProjectScreen() {
-        Intent intent = new Intent(this, CreateProjectActivity.class);
-        createProjectLauncher.launch(intent);
-    }
-
-    /**
-     * Show a toast for features not yet implemented
-     */
-    private void showFeatureNotAvailable(String feature) {
-        android.widget.Toast.makeText(this,
-                feature + " feature coming soon!",
-                android.widget.Toast.LENGTH_SHORT).show();
-    }
-
-    // ProjectAdapter.OnProjectClickListener implementation
-
-    @Override
-    public void onProjectClick(Project project, int position) {
-        // Only open tasks for created projects
-        if (isCreatedTabSelected) {
-            openTasksForProject(project);
-        } else {
-            // For projects in "Part Of" tab, only show toast
-            Toast.makeText(this,
-                    "Only created projects can be opened",
-                    Toast.LENGTH_SHORT).show();
-        }
-    }
-
-    @Override
-    public void onProjectLongClick(Project project, int position) {
-        // Show delete confirmation dialog
-        new androidx.appcompat.app.AlertDialog.Builder(this)
-                .setTitle("Delete Project")
-                .setMessage("Are you sure you want to delete \"" + project.getTitle() + "\"?")
-                .setPositiveButton("Delete", (dialog, which) -> {
-                    databaseHelper.deleteProject(project.getId());
-                    projectAdapter.removeProject(position);
-                    loadProjects(); // Refresh to update empty state and badges
-                    android.widget.Toast.makeText(this,
-                            "Project deleted",
-                            android.widget.Toast.LENGTH_SHORT).show();
-                })
-                .setNegativeButton("Cancel", null)
-                .show();
-    }
-
-    @Override
-    protected void onResume() {
-        super.onResume();
-        // Refresh projects when returning to this screen
-        if (isCreatedTabSelected) {
-            loadProjects();
-        }
-        // Update navigation to highlight home icon
-        NavigationUtils.updateNavigation(navHome, navCalendar, navTasks, navProfile, "home");
-    }
-
-    @Override
-    protected void onDestroy() {
-        super.onDestroy();
-        if (databaseHelper != null) {
-            databaseHelper.close();
-        }
-    }
-
-    @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        getMenuInflater().inflate(R.menu.menu_main, menu);
-        return true;
-    }
-
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        if (item.getItemId() == R.id.action_logout) {
-            handleLogout();
-            return true;
-        }
-        return super.onOptionsItemSelected(item);
-    }
-
-    /**
-     * Handle user logout
-     */
-    private void handleLogout() {
-        prefsManager.clearUserData();
+    private void navigateToLogin() {
         Intent intent = new Intent(this, LoginActivity.class);
         intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
         startActivity(intent);
         finish();
     }
 
-    /**
-     * Open task page for a specific project
-     */
-    private void openTasksForProject(Project project) {
-        // Save the last opened project ID
-        prefsManager.saveLastProjectId(project.getId());
-
-        // Open TaskActivity with projectId
-        Intent intent = new Intent(this, TaskActivity.class);
-        intent.putExtra("projectId", (long) project.getId());
-        intent.putExtra("projectName", project.getTitle());
-        startActivity(intent);
-    }
-
-    /**
-     * Open task page for the last opened project
-     */
-    private void openTasksForLastProject() {
-        long lastProjectId = prefsManager.getLastProjectId();
-
-        if (lastProjectId <= 0) {
-            // No last project opened, show message
-            Toast.makeText(this,
-                    "Please select a project first",
-                    Toast.LENGTH_SHORT).show();
-            return;
+    @Override
+    protected void onResume() {
+        super.onResume();
+        if (userId > 0) {
+            loadDashboardData();
         }
-
-        // Open TaskActivity with last project ID
-        Intent intent = new Intent(this, TaskActivity.class);
-        intent.putExtra("projectId", lastProjectId);
-        startActivity(intent);
+        NavigationUtils.updateNavigation(navHome, navProjects, navTasks, navProfile, "home");
     }
 }
