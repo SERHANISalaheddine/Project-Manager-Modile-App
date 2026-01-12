@@ -6,7 +6,7 @@
         android:theme="@style/Theme.MyApplication">
 
         <activity
-            android:name=".activities.WelcomeActivity"
+            android:name=".activities.TaskActivity"
             android:exported="true">
 
             <intent-filter>
@@ -16,6 +16,13 @@
 
         </activity>
 
+        <!-- Create Task screen -->
+        <activity
+            android:name=".activities.CreateTaskActivity"
+            android:exported="false" />
+
     </application>
+
+
 
 </manifest>

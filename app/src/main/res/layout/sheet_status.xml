@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:padding="16dp">
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Select Status"
+        android:textStyle="bold"
+        android:textSize="16sp"
+        android:textColor="#111111"
+        android:layout_marginBottom="12dp"/>
+
+    <TextView
+        android:id="@+id/optTodo"
+        android:layout_width="match_parent"
+        android:layout_height="48dp"
+        android:gravity="center_vertical"
+        android:paddingHorizontal="12dp"
+        android:text="To Do" />
+
+    <TextView
+        android:id="@+id/optInProgress"
+        android:layout_width="match_parent"
+        android:layout_height="48dp"
+        android:gravity="center_vertical"
+        android:paddingHorizontal="12dp"
+        android:text="In Progress" />
+
+    <TextView
+        android:id="@+id/optDone"
+        android:layout_width="match_parent"
+        android:layout_height="48dp"
+        android:gravity="center_vertical"
+        android:paddingHorizontal="12dp"
+        android:text="Done" />
+
+    <TextView
+        android:id="@+id/optArchived"
+        android:layout_width="match_parent"
+        android:layout_height="48dp"
+        android:gravity="center_vertical"
+        android:paddingHorizontal="12dp"
+        android:text="Archived" />
+
+</LinearLayout>
