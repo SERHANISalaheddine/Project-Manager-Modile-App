@@ -15,6 +15,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import com.example.ProjectManager.R;
 import com.example.ProjectManager.api.ApiService;
 import com.example.ProjectManager.api.RetrofitClient;
+import com.example.ProjectManager.models.dto.MessageResponse;
 import com.example.ProjectManager.models.dto.UserRequestDto;
 import com.example.ProjectManager.models.dto.UserResponseDto;
 import com.example.ProjectManager.utils.SharedPrefsManager;
@@ -106,10 +107,16 @@ public class SignUpActivity extends AppCompatActivity {
             public void onResponse(Call<UserResponseDto> call, Response<UserResponseDto> response) {
                 if (response.isSuccessful() && response.body() != null) {
                     UserResponseDto user = response.body();
-                    // Registration successful, navigate to login
-                    Toast.makeText(SignUpActivity.this, R.string.signup_successful, Toast.LENGTH_SHORT).show();
-                    // User must login with their new credentials
-                    finish();
+                    // Check if we have a verification token
+                    String verificationToken = user.getVerificationToken();
+                    if (verificationToken != null && !verificationToken.isEmpty()) {
+                        // Automatically verify email with the token
+                        verifyEmailWithToken(verificationToken);
+                    } else {
+                        // Registration successful but no token, navigate to login
+                        Toast.makeText(SignUpActivity.this, R.string.signup_successful, Toast.LENGTH_SHORT).show();
+                        finish();
+                    }
                 } else {
                     isSigningUp = false;
                     btnSignUp.setEnabled(true);
@@ -123,6 +130,40 @@ public class SignUpActivity extends AppCompatActivity {
                 btnSignUp.setEnabled(true);
                 Toast.makeText(SignUpActivity.this,
                         "Network error: " + t.getMessage(), Toast.LENGTH_LONG).show();
+            }
+        });
+    }
+
+    /**
+     * Verify email with the token received from registration
+     */
+    private void verifyEmailWithToken(String token) {
+        Call<MessageResponse> call = apiService.verifyEmail(token);
+        call.enqueue(new Callback<MessageResponse>() {
+            @Override
+            public void onResponse(Call<MessageResponse> call, Response<MessageResponse> response) {
+                if (response.isSuccessful() && response.body() != null) {
+                    // Email verified successfully
+                    Toast.makeText(SignUpActivity.this,
+                            "Account created and email verified successfully!",
+                            Toast.LENGTH_LONG).show();
+                    finish();
+                } else {
+                    // Verification failed but account was created
+                    Toast.makeText(SignUpActivity.this,
+                            "Account created but email verification failed. Please try again.",
+                            Toast.LENGTH_LONG).show();
+                    finish();
+                }
+            }
+
+            @Override
+            public void onFailure(Call<MessageResponse> call, Throwable t) {
+                // Verification failed but account was created
+                Toast.makeText(SignUpActivity.this,
+                        "Account created but email verification failed: " + t.getMessage(),
+                        Toast.LENGTH_LONG).show();
+                finish();
             }
         });
     }

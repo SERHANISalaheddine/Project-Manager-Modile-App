@@ -6,7 +6,7 @@ import android.text.TextUtils;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
-import android.widget.ImageButton;
+import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -40,14 +40,13 @@ import retrofit2.Response;
 public class CreateProjectActivity extends AppCompatActivity implements AddMemberBottomSheet.OnMembersSelectedListener {
 
     // UI Components
-    private ImageButton btnBack;
+    private ImageView btnBack;
     private EditText etProjectTitle;
     private EditText etProjectDescription;
     private LinearLayout layoutSelectMember;
     private TextView tvSelectedMembers;
     private RecyclerView rvSelectedMembers;
     private Button btnCreateProject;
-
 
     // Data
     private ArrayList<Member> selectedMembers;

@@ -8,6 +8,7 @@ public class UserResponseDto {
     private String firstName;
     private String lastName;
     private String email;
+    private String verificationToken;
 
     public UserResponseDto() {
     }
@@ -49,5 +50,13 @@ public class UserResponseDto {
 
     public void setEmail(String email) {
         this.email = email;
+    }
+
+    public String getVerificationToken() {
+        return verificationToken;
+    }
+
+    public void setVerificationToken(String verificationToken) {
+        this.verificationToken = verificationToken;
     }
 }

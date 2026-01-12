@@ -28,10 +28,33 @@
         <!-- Authentication Activities -->
         <activity
             android:name=".activities.LoginActivity"
-            android:exported="false" />
+            android:exported="false"
+            android:windowSoftInputMode="adjustResize" />
 
         <activity
             android:name=".activities.SignUpActivity"
+            android:exported="false" />
+
+        <activity
+            android:name=".activities.RegisterActivity"
+            android:exported="false" />
+
+        <activity
+            android:name=".activities.ForgotPasswordActivity"
+            android:exported="false"
+            android:windowSoftInputMode="adjustResize" />
+
+        <activity
+            android:name=".activities.VerifyCodeActivity"
+            android:exported="false" />
+
+        <activity
+            android:name=".activities.NewPasswordActivity"
+            android:exported="false"
+            android:windowSoftInputMode="adjustResize" />
+
+        <activity
+            android:name=".activities.VerifyNewPasswordActivity"
             android:exported="false" />
 
         <!-- Main App Activity -->

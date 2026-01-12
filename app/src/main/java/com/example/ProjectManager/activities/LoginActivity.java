@@ -6,10 +6,12 @@ import android.text.InputType;
 import android.text.TextUtils;
 import android.util.Patterns;
 import android.view.View;
+import android.view.ViewTreeObserver;
 import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.ImageButton;
+import android.widget.ScrollView;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -38,6 +40,7 @@ public class LoginActivity extends AppCompatActivity {
     private CheckBox cbRememberMe;
     private TextView tvForgotPassword;
     private Button btnSignIn;
+    private ScrollView scrollView;
 
     private TextView tvSignUpLink;
 
@@ -62,6 +65,7 @@ public class LoginActivity extends AppCompatActivity {
 
     private void initViews() {
 
+        scrollView = findViewById(R.id.scroll_view);
         etEmail = findViewById(R.id.et_email);
         etPassword = findViewById(R.id.et_password);
         btnTogglePassword = findViewById(R.id.btn_toggle_password);
@@ -83,10 +87,16 @@ public class LoginActivity extends AppCompatActivity {
 
         btnSignIn.setOnClickListener(v -> handleLogin());
 
-
         tvSignUpLink.setOnClickListener(v -> {
-            Intent intent = new Intent(LoginActivity.this, RegisterActivity.class);
+            Intent intent = new Intent(LoginActivity.this, SignUpActivity.class);
             startActivity(intent);
+        });
+
+        // Scroll to password field when focused (for keyboard appearance)
+        etPassword.setOnFocusChangeListener((v, hasFocus) -> {
+            if (hasFocus && scrollView != null) {
+                scrollView.post(() -> scrollView.smoothScrollTo(0, etPassword.getBottom()));
+            }
         });
     }
 
@@ -181,9 +191,13 @@ public class LoginActivity extends AppCompatActivity {
         } else if (response.code() == 400) {
             // Bad request (validation error)
             Toast.makeText(this, "Invalid email or password format", Toast.LENGTH_LONG).show();
+        } else if (response.code() == 403) {
+            Toast.makeText(this, response.message(), Toast.LENGTH_LONG).show();
         } else {
-            // Other server error
-            Toast.makeText(this, "Server error: " + response.code(), Toast.LENGTH_LONG).show();
+            // Other errors
+            Toast.makeText(this,
+                    "Login failed with code: " + response.code() + " - " + response.message(),
+                    Toast.LENGTH_LONG).show();
         }
     }
 
