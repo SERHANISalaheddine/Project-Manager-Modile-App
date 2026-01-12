@@ -9,7 +9,7 @@ import java.io.Serializable;
  */
 public class Member implements Serializable {
 
-    private int id;
+    private long id;
     private String name;
     private String role;
     private String avatarUrl;
@@ -20,7 +20,7 @@ public class Member implements Serializable {
     }
 
     // Constructor with basic fields
-    public Member(int id, String name, String role) {
+    public Member(long id, String name, String role) {
         this.id = id;
         this.name = name;
         this.role = role;
@@ -28,7 +28,7 @@ public class Member implements Serializable {
     }
 
     // Full constructor
-    public Member(int id, String name, String role, String avatarUrl) {
+    public Member(long id, String name, String role, String avatarUrl) {
         this.id = id;
         this.name = name;
         this.role = role;
@@ -37,11 +37,11 @@ public class Member implements Serializable {
     }
 
     // Getters and Setters
-    public int getId() {
+    public long getId() {
         return id;
     }
 
-    public void setId(int id) {
+    public void setId(long id) {
         this.id = id;
     }
 
@@ -107,6 +107,6 @@ public class Member implements Serializable {
 
     @Override
     public int hashCode() {
-        return Integer.hashCode(id);
+        return Long.hashCode(id);
     }
 }

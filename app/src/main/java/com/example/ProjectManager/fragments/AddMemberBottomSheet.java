@@ -192,7 +192,7 @@ public class AddMemberBottomSheet extends BottomSheetDialogFragment {
                                 fullName += " " + user.getLastName();
                             }
                             Member member = new Member(
-                                    user.getId().intValue(),
+                                    user.getId(),
                                     fullName,
                                     user.getEmail() // Use email as role/subtitle
                             );

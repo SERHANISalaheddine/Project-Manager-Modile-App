@@ -144,7 +144,7 @@ public class AddMemberActivity extends AppCompatActivity {
                     if (users != null) {
                         for (UserResponseDto user : users) {
                             Member member = new Member(
-                                    user.getId().intValue(),
+                                    user.getId(),
                                     user.getFirstName() + " " + user.getLastName(),
                                     "" // No role from API response
                             );

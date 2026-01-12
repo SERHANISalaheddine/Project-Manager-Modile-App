@@ -1,6 +1,5 @@
 package com.example.ProjectManager.mappers;
 
-
 import com.example.ProjectManager.models.Member;
 import com.example.ProjectManager.models.dto.UserResponseDto;
 
@@ -17,7 +16,7 @@ public class MemberMapper {
 
         String role = "Jr Front End Developer";
 
-        int id = (u.getId() == null) ? -1 : u.getId().intValue();
+        long id = (u.getId() == null) ? -1L : u.getId();
 
         return new Member(id, fullName, role);
     }
@@ -26,4 +25,3 @@ public class MemberMapper {
         return s == null ? "" : s;
     }
 }
-

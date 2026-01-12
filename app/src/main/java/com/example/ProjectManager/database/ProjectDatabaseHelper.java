@@ -193,7 +193,7 @@ public class ProjectDatabaseHelper extends SQLiteOpenHelper {
     /**
      * Add a member to a project
      */
-    private void addMemberToProject(SQLiteDatabase db, long projectId, int memberId) {
+    private void addMemberToProject(SQLiteDatabase db, long projectId, long memberId) {
         ContentValues values = new ContentValues();
         values.put(KEY_PM_PROJECT_ID, projectId);
         values.put(KEY_PM_MEMBER_ID, memberId);
@@ -447,7 +447,7 @@ public class ProjectDatabaseHelper extends SQLiteOpenHelper {
      */
     private Member cursorToMember(Cursor cursor) {
         Member member = new Member();
-        member.setId(cursor.getInt(cursor.getColumnIndexOrThrow(KEY_MEMBER_ID)));
+        member.setId(cursor.getLong(cursor.getColumnIndexOrThrow(KEY_MEMBER_ID)));
         member.setName(cursor.getString(cursor.getColumnIndexOrThrow(KEY_MEMBER_NAME)));
         member.setRole(cursor.getString(cursor.getColumnIndexOrThrow(KEY_MEMBER_ROLE)));
         member.setAvatarUrl(cursor.getString(cursor.getColumnIndexOrThrow(KEY_MEMBER_AVATAR_URL)));
