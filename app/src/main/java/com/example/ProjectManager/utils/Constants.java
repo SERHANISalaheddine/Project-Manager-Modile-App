@@ -7,8 +7,23 @@ public final class Constants {
     private Constants() {
     }
 
+<<<<<<< Updated upstream
     // API Gateway base URL (dev)
     public static final String BASE_URL = "http://localhost:8080"; // TODO: swap via buildTypes when wiring backend
+=======
+    // API Gateway base URL
+    // IMPORTANT: Choose the right URL based on your testing environment:
+    //
+    // For Android EMULATOR (maps to host machine's localhost):
+    // public static final String BASE_URL = "http://10.0.2.2:8080";
+    //
+    // For PHYSICAL DEVICE on same WiFi network:
+    // Replace with your computer's local IP (e.g., 192.168.1.xxx)
+    // public static final String BASE_URL = "http://192.168.1.100:8080";
+    //
+    // For localhost testing on emulator:
+    public static final String BASE_URL = "http://10.0.2.2:8080";
+>>>>>>> Stashed changes
 
     // Route prefixes per gateway
     public static final String AUTH_PREFIX = "/api/v1/auth";

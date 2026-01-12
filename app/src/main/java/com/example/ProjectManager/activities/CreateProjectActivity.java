@@ -1,5 +1,6 @@
 package com.example.ProjectManager.activities;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.text.TextUtils;
 import android.view.View;
@@ -10,6 +11,7 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.activity.OnBackPressedCallback;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
@@ -39,6 +41,7 @@ public class CreateProjectActivity extends AppCompatActivity implements AddMembe
     private RecyclerView rvSelectedMembers;
     private Button btnCreateProject;
 
+
     // Data
     private ArrayList<Member> selectedMembers;
     private MemberAdapter selectedMembersAdapter;
@@ -63,6 +66,22 @@ public class CreateProjectActivity extends AppCompatActivity implements AddMembe
 
         // Setup selected members RecyclerView
         setupSelectedMembersRecyclerView();
+
+        getOnBackPressedDispatcher().addCallback(this, new OnBackPressedCallback(true) {
+            @Override
+            public void handleOnBackPressed() {
+                // Check if there are unsaved changes
+                String title = etProjectTitle.getText().toString().trim();
+                String description = etProjectDescription.getText().toString().trim();
+
+                if (!TextUtils.isEmpty(title) || !TextUtils.isEmpty(description) || !selectedMembers.isEmpty()) {
+                    // Show confirmation dialog for unsaved changes
+                    showUnsavedChangesDialog();
+                } else {
+                    navigateToMainActivity();
+                }
+            }
+        });
     }
 
     /**
@@ -83,7 +102,7 @@ public class CreateProjectActivity extends AppCompatActivity implements AddMembe
      */
     private void setupListeners() {
         // Back button - finish activity
-        btnBack.setOnClickListener(v -> onBackPressed());
+        btnBack.setOnClickListener(v -> getOnBackPressedDispatcher().onBackPressed());
 
         // Select member layout - open member selection dialog
         layoutSelectMember.setOnClickListener(v -> openMemberSelectionDialog());
@@ -169,8 +188,57 @@ public class CreateProjectActivity extends AppCompatActivity implements AddMembe
         // Save to database
         boolean success = saveProject(project);
 
+<<<<<<< Updated upstream
         if (success) {
             // Show success message
+=======
+        // Build create project request (owner is set from JWT token on backend)
+        CreateProjectRequest request = new CreateProjectRequest(title, description);
+
+        // Make API call to create project
+        Call<ProjectResponse> call = apiService.createProject(request);
+        call.enqueue(new Callback<ProjectResponse>() {
+            @Override
+            public void onResponse(Call<ProjectResponse> call, Response<ProjectResponse> response) {
+                if (response.isSuccessful() && response.body() != null) {
+                    ProjectResponse projectResponse = response.body();
+                    Long projectId = projectResponse.getId();
+
+                    // Add selected members to the project
+                    if (selectedMembers.isEmpty()) {
+                        // No members to add, project created successfully
+                        Toast.makeText(CreateProjectActivity.this,
+                                R.string.project_created_successfully, Toast.LENGTH_SHORT).show();
+                        setResult(RESULT_OK);
+                        finish();
+                    } else {
+                        // Add members to the project
+                        addMembersToProject(projectId, 0);
+                    }
+                } else {
+                    isCreating = false;
+                    btnCreateProject.setEnabled(true);
+                    handleCreateProjectError(response);
+                }
+            }
+
+            @Override
+            public void onFailure(Call<ProjectResponse> call, Throwable t) {
+                isCreating = false;
+                btnCreateProject.setEnabled(true);
+                Toast.makeText(CreateProjectActivity.this,
+                        "Network error: " + t.getMessage(), Toast.LENGTH_LONG).show();
+            }
+        });
+    }
+
+    /**
+     * Recursively add selected members to the project
+     */
+    private void addMembersToProject(Long projectId, int memberIndex) {
+        if (memberIndex >= selectedMembers.size()) {
+            // All members added successfully
+>>>>>>> Stashed changes
             Toast.makeText(this, R.string.project_created_successfully, Toast.LENGTH_SHORT).show();
 
             // Set result and finish
@@ -215,20 +283,6 @@ public class CreateProjectActivity extends AppCompatActivity implements AddMembe
         }
     }
 
-    @Override
-    public void onBackPressed() {
-        // Check if there are unsaved changes
-        String title = etProjectTitle.getText().toString().trim();
-        String description = etProjectDescription.getText().toString().trim();
-
-        if (!TextUtils.isEmpty(title) || !TextUtils.isEmpty(description) || !selectedMembers.isEmpty()) {
-            // Show confirmation dialog for unsaved changes
-            showUnsavedChangesDialog();
-        } else {
-            super.onBackPressed();
-        }
-    }
-
     /**
      * Show dialog to confirm discarding unsaved changes
      */
@@ -236,9 +290,16 @@ public class CreateProjectActivity extends AppCompatActivity implements AddMembe
         new androidx.appcompat.app.AlertDialog.Builder(this)
                 .setTitle("Discard Changes?")
                 .setMessage("You have unsaved changes. Are you sure you want to go back?")
-                .setPositiveButton("Discard", (dialog, which) -> finish())
+                .setPositiveButton("Discard", (dialog, which) -> navigateToMainActivity())
                 .setNegativeButton("Cancel", null)
                 .show();
+    }
+
+    private void navigateToMainActivity() {
+        Intent intent = new Intent(CreateProjectActivity.this, MainActivity.class);
+        intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
+        startActivity(intent);
+        finish();
     }
 
     @Override

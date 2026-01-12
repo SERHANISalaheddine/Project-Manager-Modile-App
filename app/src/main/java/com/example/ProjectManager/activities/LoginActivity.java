@@ -134,8 +134,78 @@ public class LoginActivity extends AppCompatActivity {
         // On success: save token and user data, navigate to MainActivity
         // On error: show error message
 
+<<<<<<< Updated upstream
         // Mock authentication for now
         performMockLogin(email, password);
+=======
+        // Make API call to login endpoint
+        Call<AuthResponseDto> call = apiService.login(new LoginRequestDto(email, password));
+        call.enqueue(new Callback<AuthResponseDto>() {
+            @Override
+            public void onResponse(Call<AuthResponseDto> call, Response<AuthResponseDto> response) {
+                btnSignIn.setEnabled(true);
+                btnSignIn.setText(R.string.sign_in);
+
+                if (response.isSuccessful() && response.body() != null) {
+                    AuthResponseDto authResponse = response.body();
+                    String token = authResponse.getToken();
+                    Long userId = authResponse.getUserId();
+
+                    // Save Remember Me preference
+                    prefsManager.setRememberMe(cbRememberMe.isChecked());
+
+                    // Save user data with userId from login response
+                    // We'll fetch the full profile to get firstName and lastName
+                    prefsManager.saveUserData(
+                            userId != null ? userId : -1L,
+                            email,
+                            "", // firstName will be fetched separately if needed
+                            "", // lastName will be fetched separately if needed
+                            token);
+
+                    // Fetch user profile to get full user details
+                    if (userId != null) {
+                        fetchUserProfile(userId);
+                    }
+
+                    // Show success message
+                    Toast.makeText(LoginActivity.this, R.string.login_successful, Toast.LENGTH_SHORT).show();
+
+                    // Navigate to MainActivity
+                    navigateToMain();
+                } else {
+                    // Handle error response
+                    handleLoginError(response);
+                }
+            }
+
+            @Override
+            public void onFailure(Call<AuthResponseDto> call, Throwable t) {
+                btnSignIn.setEnabled(true);
+                btnSignIn.setText(R.string.sign_in);
+
+                Toast.makeText(LoginActivity.this,
+                        "Network error: " + t.getMessage(),
+                        Toast.LENGTH_LONG).show();
+                t.printStackTrace();
+            }
+        });
+    }
+
+    private void handleLoginError(Response<AuthResponseDto> response) {
+        if (response.code() == 401) {
+            // Invalid credentials
+            Toast.makeText(this, R.string.error_invalid_credentials, Toast.LENGTH_LONG).show();
+            etPassword.setError(getString(R.string.error_invalid_credentials));
+            etPassword.requestFocus();
+        } else if (response.code() == 400) {
+            // Bad request (validation error)
+            Toast.makeText(this, "Invalid email or password format", Toast.LENGTH_LONG).show();
+        } else {
+            // Other server error
+            Toast.makeText(this, "Server error: " + response.code(), Toast.LENGTH_LONG).show();
+        }
+>>>>>>> Stashed changes
     }
 
     private boolean validateInputs(String email, String password) {
@@ -198,6 +268,35 @@ public class LoginActivity extends AppCompatActivity {
         intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
         startActivity(intent);
         finish();
+    }
+
+    /**
+     * Fetch user profile to get full user details (firstName, lastName)
+     */
+    private void fetchUserProfile(Long userId) {
+        Call<com.example.ProjectManager.models.dto.UserResponseDto> call = apiService.getUser(userId);
+        call.enqueue(new Callback<com.example.ProjectManager.models.dto.UserResponseDto>() {
+            @Override
+            public void onResponse(Call<com.example.ProjectManager.models.dto.UserResponseDto> call,
+                    Response<com.example.ProjectManager.models.dto.UserResponseDto> response) {
+                if (response.isSuccessful() && response.body() != null) {
+                    com.example.ProjectManager.models.dto.UserResponseDto user = response.body();
+                    // Update user data with full profile info
+                    String token = prefsManager.getAuthToken();
+                    prefsManager.saveUserData(
+                            user.getId(),
+                            user.getEmail(),
+                            user.getFirstName(),
+                            user.getLastName(),
+                            token);
+                }
+            }
+
+            @Override
+            public void onFailure(Call<com.example.ProjectManager.models.dto.UserResponseDto> call, Throwable t) {
+                // Silently fail - user is still logged in, just without full profile
+            }
+        });
     }
 
     @Override

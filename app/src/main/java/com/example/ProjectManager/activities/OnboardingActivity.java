@@ -22,12 +22,17 @@ public class OnboardingActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        // Check if user is already logged in
+        // Check if user is already logged in with a valid token
         SharedPrefsManager prefsManager = SharedPrefsManager.getInstance(this);
-        if (prefsManager.isLoggedIn()) {
-            // User is logged in, go directly to MainActivity
+        String token = prefsManager.getAuthToken();
+        if (prefsManager.isLoggedIn() && token != null && !token.isEmpty()) {
+            // User is logged in with valid token, go directly to MainActivity
             navigateToMain();
             return;
+        } else if (prefsManager.isLoggedIn()) {
+            // User is marked as logged in but token is missing/invalid - clear and show
+            // login
+            prefsManager.clearUserData();
         }
 
         setContentView(R.layout.activity_onboarding);

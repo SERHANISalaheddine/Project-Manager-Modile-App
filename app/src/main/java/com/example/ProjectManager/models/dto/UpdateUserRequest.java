@@ -1,27 +1,22 @@
 package com.example.ProjectManager.models.dto;
 
 /**
- * Mirrors backend UserRequestDto.
- * Used for /api/v1/auth/register endpoint.
+ * Request DTO for updating user info.
+ * PATCH /api/v1/users/{id}
+ * All fields are optional - only include fields you want to update.
  */
-public class UserRequestDto {
+public class UpdateUserRequest {
     private String firstName;
     private String lastName;
     private String email;
-    private String passwordHash;
 
-    public UserRequestDto() {
+    public UpdateUserRequest() {
     }
 
-    /**
-     * Constructor for registration request.
-     * Note: The backend expects 'passwordHash' field name.
-     */
-    public UserRequestDto(String firstName, String lastName, String email, String password) {
+    public UpdateUserRequest(String firstName, String lastName, String email) {
         this.firstName = firstName;
         this.lastName = lastName;
         this.email = email;
-        this.passwordHash = password;
     }
 
     public String getFirstName() {
@@ -46,13 +41,5 @@ public class UserRequestDto {
 
     public void setEmail(String email) {
         this.email = email;
-    }
-
-    public String getPasswordHash() {
-        return passwordHash;
-    }
-
-    public void setPasswordHash(String password) {
-        this.passwordHash = password;
     }
 }

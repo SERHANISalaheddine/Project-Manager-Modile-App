@@ -5,6 +5,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -13,12 +14,19 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.ProjectManager.R;
 import com.example.ProjectManager.adapters.MemberAdapter;
-import com.example.ProjectManager.database.ProjectDatabaseHelper;
+import com.example.ProjectManager.api.ApiService;
+import com.example.ProjectManager.api.RetrofitClient;
 import com.example.ProjectManager.models.Member;
+import com.example.ProjectManager.models.dto.PageResponse;
+import com.example.ProjectManager.models.dto.UserResponseDto;
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment;
 
 import java.util.ArrayList;
 import java.util.List;
+
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
 
 /**
  * Bottom sheet dialog for selecting project members.
@@ -34,7 +42,7 @@ public class AddMemberBottomSheet extends BottomSheetDialogFragment {
     private MemberAdapter memberAdapter;
     private OnMembersSelectedListener listener;
     private List<Member> preSelectedMembers;
-    private ProjectDatabaseHelper databaseHelper;
+    private ApiService apiService;
 
     /**
      * Interface for communicating selected members back to the activity
@@ -143,32 +151,91 @@ public class AddMemberBottomSheet extends BottomSheetDialogFragment {
     }
 
     /**
-     * Load the list of available members
-     * Fetches from database or falls back to sample data
+     * Load the list of available members from API
+     * GET /api/v1/users
      */
     private void loadMembers() {
-        // Initialize database helper if not already
-        if (databaseHelper == null && getContext() != null) {
-            databaseHelper = new ProjectDatabaseHelper(getContext());
+        // Initialize API service if not already
+        if (apiService == null && getContext() != null) {
+            apiService = RetrofitClient.getInstance(getContext()).create(ApiService.class);
         }
 
-        List<Member> members;
-        if (databaseHelper != null) {
-            members = databaseHelper.getAllMembers();
-            // If no members in database, use sample data
-            if (members.isEmpty()) {
-                members = getSampleMembers();
+        if (apiService == null) {
+            // Fallback to sample data if API not available
+            memberAdapter.setMembers(getSampleMembers());
+            return;
+        }
+
+        // Disable select button while loading
+        btnSelect.setEnabled(false);
+        btnSelect.setText("Loading...");
+
+        // Fetch users from API
+        Call<PageResponse<UserResponseDto>> call = apiService.getUsers(0, 50);
+        call.enqueue(new Callback<PageResponse<UserResponseDto>>() {
+            @Override
+            public void onResponse(Call<PageResponse<UserResponseDto>> call,
+                    Response<PageResponse<UserResponseDto>> response) {
+                btnSelect.setEnabled(true);
+                btnSelect.setText(R.string.select);
+
+                if (response.isSuccessful() && response.body() != null) {
+                    PageResponse<UserResponseDto> pageResponse = response.body();
+                    List<UserResponseDto> users = pageResponse.getContent();
+
+                    // Convert UserResponseDto to Member objects
+                    List<Member> members = new ArrayList<>();
+                    if (users != null) {
+                        for (UserResponseDto user : users) {
+                            String fullName = user.getFirstName();
+                            if (user.getLastName() != null && !user.getLastName().isEmpty()) {
+                                fullName += " " + user.getLastName();
+                            }
+                            Member member = new Member(
+                                    user.getId().intValue(),
+                                    fullName,
+                                    user.getEmail() // Use email as role/subtitle
+                            );
+                            members.add(member);
+                        }
+                    }
+
+                    if (members.isEmpty()) {
+                        // No users from API, use sample data
+                        members = getSampleMembers();
+                    }
+
+                    memberAdapter.setMembers(members);
+
+                    // Set pre-selected members if any
+                    if (!preSelectedMembers.isEmpty()) {
+                        memberAdapter.setPreSelectedMembers(preSelectedMembers);
+                    }
+                } else {
+                    // API error, fallback to sample data
+                    if (getContext() != null) {
+                        Toast.makeText(getContext(),
+                                "Failed to load users: " + response.code(),
+                                Toast.LENGTH_SHORT).show();
+                    }
+                    memberAdapter.setMembers(getSampleMembers());
+                }
             }
-        } else {
-            members = getSampleMembers();
-        }
 
-        memberAdapter.setMembers(members);
+            @Override
+            public void onFailure(Call<PageResponse<UserResponseDto>> call, Throwable t) {
+                btnSelect.setEnabled(true);
+                btnSelect.setText(R.string.select);
 
-        // Set pre-selected members if any
-        if (!preSelectedMembers.isEmpty()) {
-            memberAdapter.setPreSelectedMembers(preSelectedMembers);
-        }
+                if (getContext() != null) {
+                    Toast.makeText(getContext(),
+                            "Network error: " + t.getMessage(),
+                            Toast.LENGTH_SHORT).show();
+                }
+                // Fallback to sample data
+                memberAdapter.setMembers(getSampleMembers());
+            }
+        });
     }
 
     /**
@@ -190,11 +257,7 @@ public class AddMemberBottomSheet extends BottomSheetDialogFragment {
     @Override
     public void onDestroyView() {
         super.onDestroyView();
-        // Close database connection
-        if (databaseHelper != null) {
-            databaseHelper.close();
-            databaseHelper = null;
-        }
+        // Cleanup if needed
     }
 
     @Override

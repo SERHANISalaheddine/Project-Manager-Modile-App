@@ -34,6 +34,14 @@ public class Project implements Serializable {
         this.description = description;
     }
 
+    // Constructor for API response (Long id converted to int)
+    public Project(Long id, String name, String description) {
+        this();
+        this.id = id != null ? id.intValue() : 0;
+        this.title = name;
+        this.description = description;
+    }
+
     // Constructor with members
     public Project(String title, String description, List<Member> members) {
         this(title, description);
