@@ -1,16 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
-<com.google.android.material.card.MaterialCardView xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.cardview.widget.CardView
+    xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:layout_marginBottom="12dp"
-    android:clickable="true"
-    android:focusable="true"
-    app:cardBackgroundColor="@color/white"
-    app:cardCornerRadius="12dp"
-    app:cardElevation="2dp"
-    app:rippleColor="@color/purple_very_light">
+    android:layout_marginHorizontal="16dp"
+    android:layout_marginVertical="8dp"
+    app:cardCornerRadius="18dp"
+    app:cardElevation="6dp">
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -18,52 +16,48 @@
         android:orientation="vertical"
         android:padding="16dp">
 
-        <!-- Project Title Row -->
+        <!-- TOP ROW -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:gravity="center_vertical"
-            android:orientation="horizontal">
+            android:orientation="horizontal"
+            android:gravity="center_vertical">
 
-            <!-- Status Indicator -->
             <View
                 android:id="@+id/view_status_indicator"
-                android:layout_width="8dp"
-                android:layout_height="8dp"
-                android:background="@drawable/bg_status_indicator" />
+                android:layout_width="10dp"
+                android:layout_height="10dp"
+                android:background="@drawable/dot_purple"/>
 
-            <!-- Project Title -->
             <TextView
                 android:id="@+id/tv_project_title"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:layout_marginStart="12dp"
+                android:layout_marginStart="10dp"
                 android:layout_weight="1"
-                android:ellipsize="end"
-                android:maxLines="2"
-                android:textColor="@color/text_primary"
-                android:textSize="16sp"
-                tools:text="Optimize performance and caching" />
+                android:textColor="#2D2D2D"
+                android:textSize="14sp"
+                android:textStyle="bold"
+                tools:text="Optimize performance and caching"/>
 
+            <TextView
+                android:id="@+id/tv_due_date"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textColor="#9E9E9E"
+                android:textSize="11sp"
+                tools:text="27 Sept"/>
         </LinearLayout>
 
-        <!-- Progress Bar (Optional) -->
-        <View
-            android:id="@+id/view_progress_bar"
-            android:layout_width="match_parent"
-            android:layout_height="4dp"
-            android:layout_marginTop="12dp"
-            android:background="@color/purple_light" />
-
-        <!-- Bottom Row: Members and Date -->
+        <!-- AVATARS -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="12dp"
-            android:gravity="center_vertical"
-            android:orientation="horizontal">
+            android:layout_marginTop="10dp"
+            android:orientation="horizontal"
+            android:gravity="center_vertical">
 
-            <!-- Member Avatars Container -->
+            <!-- Avatars -->
             <LinearLayout
                 android:id="@+id/layout_member_avatars"
                 android:layout_width="0dp"
@@ -71,55 +65,40 @@
                 android:layout_weight="1"
                 android:orientation="horizontal">
 
-                <!-- Avatar placeholders - In a real app, these would be ImageViews with actual avatars -->
                 <View
                     android:id="@+id/avatar_1"
-                    android:layout_width="28dp"
-                    android:layout_height="28dp"
-                    android:background="@drawable/bg_avatar_placeholder_1" />
+                    android:layout_width="26dp"
+                    android:layout_height="26dp"
+                    android:background="@drawable/bg_avatar_placeholder_1"/>
 
                 <View
                     android:id="@+id/avatar_2"
-                    android:layout_width="28dp"
-                    android:layout_height="28dp"
+                    android:layout_width="26dp"
+                    android:layout_height="26dp"
                     android:layout_marginStart="-8dp"
-                    android:background="@drawable/bg_avatar_placeholder_2" />
+                    android:background="@drawable/bg_avatar_placeholder_2"/>
 
                 <View
                     android:id="@+id/avatar_3"
-                    android:layout_width="28dp"
-                    android:layout_height="28dp"
+                    android:layout_width="26dp"
+                    android:layout_height="26dp"
                     android:layout_marginStart="-8dp"
-                    android:background="@drawable/bg_avatar_placeholder_3" />
-
-            </LinearLayout>
-
-            <!-- Due Date -->
-            <LinearLayout
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:gravity="center_vertical"
-                android:orientation="horizontal">
-
-                <ImageView
-                    android:layout_width="16dp"
-                    android:layout_height="16dp"
-                    android:src="@drawable/ic_date"
-                    app:tint="@color/text_secondary" />
-
-                <TextView
-                    android:id="@+id/tv_due_date"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginStart="4dp"
-                    android:textColor="@color/text_secondary"
-                    android:textSize="12sp"
-                    tools:text="27 Sept" />
-
+                    android:background="@drawable/bg_avatar_placeholder_3"/>
             </LinearLayout>
 
         </LinearLayout>
 
+        <ProgressBar
+            android:id="@+id/view_progress_bar"
+            android:layout_width="match_parent"
+            android:layout_height="6dp"
+            android:layout_marginTop="12dp"
+            android:progress="60"
+            android:max="100"
+            style="?android:attr/progressBarStyleHorizontal"
+            android:progressTint="#6C4DFF"
+            android:backgroundTint="#EDEAFF"/>
+
     </LinearLayout>
 
-</com.google.android.material.card.MaterialCardView>
+</androidx.cardview.widget.CardView>
