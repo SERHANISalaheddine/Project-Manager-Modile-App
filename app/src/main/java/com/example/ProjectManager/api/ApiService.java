@@ -3,28 +3,49 @@ package com.example.ProjectManager.api;
 import com.example.ProjectManager.models.dto.AddMemberRequest;
 import com.example.ProjectManager.models.dto.AuthResponseDto;
 import com.example.ProjectManager.models.dto.CreateProjectRequest;
+<<<<<<< Updated upstream
 import com.example.ProjectManager.models.dto.CreateTaskRequest;
+=======
+import com.example.ProjectManager.models.dto.ForgotPasswordRequest;
+>>>>>>> Stashed changes
 import com.example.ProjectManager.models.dto.LoginRequestDto;
+import com.example.ProjectManager.models.dto.MessageResponse;
 import com.example.ProjectManager.models.dto.PageResponse;
+import com.example.ProjectManager.models.dto.PasswordUpdateRequest;
 import com.example.ProjectManager.models.dto.ProjectResponse;
+<<<<<<< Updated upstream
 import com.example.ProjectManager.models.dto.TaskResponse;
 import com.example.ProjectManager.models.dto.UserRequestDto;
 import com.example.ProjectManager.models.dto.UserResponseDto;
 
 import java.util.Map;
 
+=======
+import com.example.ProjectManager.models.dto.ResetPasswordRequest;
+import com.example.ProjectManager.models.dto.UpdateUserRequest;
+import com.example.ProjectManager.models.dto.UserRequestDto;
+import com.example.ProjectManager.models.dto.UserResponseDto;
+
+import okhttp3.MultipartBody;
+>>>>>>> Stashed changes
 import retrofit2.Call;
 import retrofit2.http.Body;
 import retrofit2.http.DELETE;
 import retrofit2.http.GET;
+<<<<<<< Updated upstream
+=======
+import retrofit2.http.Multipart;
+>>>>>>> Stashed changes
 import retrofit2.http.PATCH;
 import retrofit2.http.POST;
 import retrofit2.http.PUT;
+import retrofit2.http.Part;
 import retrofit2.http.Path;
 import retrofit2.http.Query;
 
 /**
  * API Service interface with all endpoints.
+ * Base URL: http://localhost:8080 (use 10.0.2.2:8080 for emulator)
  * All methods (except auth) require Authorization header with JWT token.
  */
 public interface ApiService {
@@ -37,6 +58,15 @@ public interface ApiService {
     @POST("/api/v1/auth/register")
     Call<UserResponseDto> register(@Body UserRequestDto request);
 
+    @POST("/api/v1/auth/forgot-password")
+    Call<MessageResponse> forgotPassword(@Body ForgotPasswordRequest request);
+
+    @POST("/api/v1/auth/reset-password")
+    Call<MessageResponse> resetPassword(@Body ResetPasswordRequest request);
+
+    @GET("/api/v1/auth/verify-email")
+    Call<MessageResponse> verifyEmail(@Query("token") String token);
+
     // ============== USERS (Require authentication) ==============
 
     @GET("/api/v1/users")
@@ -45,8 +75,21 @@ public interface ApiService {
     @GET("/api/v1/users/{id}")
     Call<UserResponseDto> getUser(@Path("id") long id);
 
+    @PATCH("/api/v1/users/{id}")
+    Call<UserResponseDto> updateUser(@Path("id") long id, @Body UpdateUserRequest request);
+
     @DELETE("/api/v1/users/{id}")
     Call<Void> deleteUser(@Path("id") long id);
+
+    @PUT("/api/v1/users/{id}/password")
+    Call<MessageResponse> updatePassword(@Path("id") long id, @Body PasswordUpdateRequest request);
+
+    @Multipart
+    @POST("/api/v1/users/me/profile-picture")
+    Call<UserResponseDto> uploadProfilePicture(@Part MultipartBody.Part file);
+
+    @DELETE("/api/v1/users/me/profile-picture")
+    Call<MessageResponse> deleteProfilePicture();
 
     // ============== PROJECTS (Require authentication) ==============
 
@@ -61,6 +104,18 @@ public interface ApiService {
 
     @DELETE("/api/v1/projects/{id}")
     Call<Void> deleteProject(@Path("id") long id);
+
+    @GET("/api/v1/projects/owner/{userId}")
+    Call<PageResponse<ProjectResponse>> getProjectsByOwner(
+            @Path("userId") long userId,
+            @Query("page") int page,
+            @Query("size") int size);
+
+    @GET("/api/v1/projects/member/{userId}")
+    Call<PageResponse<ProjectResponse>> getProjectsByMember(
+            @Path("userId") long userId,
+            @Query("page") int page,
+            @Query("size") int size);
 
     // ============== PROJECT MEMBERS (Require authentication) ==============
 

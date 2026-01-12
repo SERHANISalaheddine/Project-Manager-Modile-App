@@ -1,5 +1,6 @@
 package com.example.ProjectManager.activities;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.text.TextUtils;
 import android.view.View;
@@ -10,6 +11,7 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.activity.OnBackPressedCallback;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
@@ -46,6 +48,7 @@ public class CreateProjectActivity extends AppCompatActivity implements AddMembe
     private RecyclerView rvSelectedMembers;
     private Button btnCreateProject;
 
+
     // Data
     private ArrayList<Member> selectedMembers;
     private MemberAdapter selectedMembersAdapter;
@@ -73,6 +76,22 @@ public class CreateProjectActivity extends AppCompatActivity implements AddMembe
 
         // Setup selected members RecyclerView
         setupSelectedMembersRecyclerView();
+
+        getOnBackPressedDispatcher().addCallback(this, new OnBackPressedCallback(true) {
+            @Override
+            public void handleOnBackPressed() {
+                // Check if there are unsaved changes
+                String title = etProjectTitle.getText().toString().trim();
+                String description = etProjectDescription.getText().toString().trim();
+
+                if (!TextUtils.isEmpty(title) || !TextUtils.isEmpty(description) || !selectedMembers.isEmpty()) {
+                    // Show confirmation dialog for unsaved changes
+                    showUnsavedChangesDialog();
+                } else {
+                    navigateToMainActivity();
+                }
+            }
+        });
     }
 
     /**
@@ -93,7 +112,7 @@ public class CreateProjectActivity extends AppCompatActivity implements AddMembe
      */
     private void setupListeners() {
         // Back button - finish activity
-        btnBack.setOnClickListener(v -> onBackPressed());
+        btnBack.setOnClickListener(v -> getOnBackPressedDispatcher().onBackPressed());
 
         // Select member layout - open member selection dialog
         layoutSelectMember.setOnClickListener(v -> openMemberSelectionDialog());
@@ -181,11 +200,8 @@ public class CreateProjectActivity extends AppCompatActivity implements AddMembe
         isCreating = true;
         btnCreateProject.setEnabled(false);
 
-        // Get owner ID from shared preferences
-        long ownerId = prefsManager.getUserId();
-
-        // Build create project request
-        CreateProjectRequest request = new CreateProjectRequest(title, description, ownerId);
+        // Build create project request (owner is set from JWT token on backend)
+        CreateProjectRequest request = new CreateProjectRequest(title, description);
 
         // Make API call to create project
         Call<ProjectResponse> call = apiService.createProject(request);
@@ -288,20 +304,6 @@ public class CreateProjectActivity extends AppCompatActivity implements AddMembe
         Toast.makeText(this, errorMessage, Toast.LENGTH_LONG).show();
     }
 
-    @Override
-    public void onBackPressed() {
-        // Check if there are unsaved changes
-        String title = etProjectTitle.getText().toString().trim();
-        String description = etProjectDescription.getText().toString().trim();
-
-        if (!TextUtils.isEmpty(title) || !TextUtils.isEmpty(description) || !selectedMembers.isEmpty()) {
-            // Show confirmation dialog for unsaved changes
-            showUnsavedChangesDialog();
-        } else {
-            super.onBackPressed();
-        }
-    }
-
     /**
      * Show dialog to confirm discarding unsaved changes
      */
@@ -309,9 +311,16 @@ public class CreateProjectActivity extends AppCompatActivity implements AddMembe
         new androidx.appcompat.app.AlertDialog.Builder(this)
                 .setTitle("Discard Changes?")
                 .setMessage("You have unsaved changes. Are you sure you want to go back?")
-                .setPositiveButton("Discard", (dialog, which) -> finish())
+                .setPositiveButton("Discard", (dialog, which) -> navigateToMainActivity())
                 .setNegativeButton("Cancel", null)
                 .show();
+    }
+
+    private void navigateToMainActivity() {
+        Intent intent = new Intent(CreateProjectActivity.this, MainActivity.class);
+        intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
+        startActivity(intent);
+        finish();
     }
 
     @Override

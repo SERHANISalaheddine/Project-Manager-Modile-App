@@ -8,8 +8,16 @@ public final class Constants {
     }
 
     // API Gateway base URL
-    // Use 10.0.2.2 for emulator (maps to localhost on host machine)
-    // Use the actual server IP/domain for real device
+    // IMPORTANT: Choose the right URL based on your testing environment:
+    //
+    // For Android EMULATOR (maps to host machine's localhost):
+    // public static final String BASE_URL = "http://10.0.2.2:8080";
+    //
+    // For PHYSICAL DEVICE on same WiFi network:
+    // Replace with your computer's local IP (e.g., 192.168.1.xxx)
+    // public static final String BASE_URL = "http://192.168.1.100:8080";
+    //
+    // For localhost testing on emulator:
     public static final String BASE_URL = "http://10.0.2.2:8080";
 
     // Route prefixes per gateway

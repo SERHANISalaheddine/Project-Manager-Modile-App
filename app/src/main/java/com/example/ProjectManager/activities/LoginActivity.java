@@ -129,20 +129,24 @@ public class LoginActivity extends AppCompatActivity {
                 if (response.isSuccessful() && response.body() != null) {
                     AuthResponseDto authResponse = response.body();
                     String token = authResponse.getToken();
+                    Long userId = authResponse.getUserId();
 
                     // Save Remember Me preference
                     prefsManager.setRememberMe(cbRememberMe.isChecked());
 
-                    // TODO: After successful login, fetch user profile to get firstName, lastName
-                    // For now, use email as a placeholder and ID from the token
-                    // You should decode the JWT to get userId or fetch user info from GET
-                    // /api/v1/users/me endpoint
+                    // Save user data with userId from login response
+                    // We'll fetch the full profile to get firstName and lastName
                     prefsManager.saveUserData(
-                            1L, // TODO: Get actual user ID from profile endpoint
+                            userId != null ? userId : -1L,
                             email,
-                            "User", // TODO: Get actual firstName
-                            "", // TODO: Get actual lastName
+                            "", // firstName will be fetched separately if needed
+                            "", // lastName will be fetched separately if needed
                             token);
+
+                    // Fetch user profile to get full user details
+                    if (userId != null) {
+                        fetchUserProfile(userId);
+                    }
 
                     // Show success message
                     Toast.makeText(LoginActivity.this, R.string.login_successful, Toast.LENGTH_SHORT).show();
@@ -212,6 +216,35 @@ public class LoginActivity extends AppCompatActivity {
         intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
         startActivity(intent);
         finish();
+    }
+
+    /**
+     * Fetch user profile to get full user details (firstName, lastName)
+     */
+    private void fetchUserProfile(Long userId) {
+        Call<com.example.ProjectManager.models.dto.UserResponseDto> call = apiService.getUser(userId);
+        call.enqueue(new Callback<com.example.ProjectManager.models.dto.UserResponseDto>() {
+            @Override
+            public void onResponse(Call<com.example.ProjectManager.models.dto.UserResponseDto> call,
+                    Response<com.example.ProjectManager.models.dto.UserResponseDto> response) {
+                if (response.isSuccessful() && response.body() != null) {
+                    com.example.ProjectManager.models.dto.UserResponseDto user = response.body();
+                    // Update user data with full profile info
+                    String token = prefsManager.getAuthToken();
+                    prefsManager.saveUserData(
+                            user.getId(),
+                            user.getEmail(),
+                            user.getFirstName(),
+                            user.getLastName(),
+                            token);
+                }
+            }
+
+            @Override
+            public void onFailure(Call<com.example.ProjectManager.models.dto.UserResponseDto> call, Throwable t) {
+                // Silently fail - user is still logged in, just without full profile
+            }
+        });
     }
 
     @Override
