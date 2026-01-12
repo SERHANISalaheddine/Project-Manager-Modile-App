@@ -42,13 +42,17 @@ public class WelcomeActivity extends AppCompatActivity {
             updateUI();
         } else {
             // Sign In
-            startActivity(new Intent(this, WelcomeActivity.class));
+            startActivity(new Intent(this, LoginActivity.class));
             finish();
         }
     }
 
     private void previousStep() {
-        if (step > 1) {
+        if (step == 4){
+            // Sign In
+            startActivity(new Intent(this, RegisterActivity.class));
+            finish();
+        } else if (step > 1){
             step--;
             updateUI();
         }
@@ -61,7 +65,7 @@ public class WelcomeActivity extends AppCompatActivity {
                 titleText.setText("Welcome to Syncro!");
                 descText.setText("Organize your tasks, projects, and ideas all in one place. Stay productive, stay in sync.");
                 progressBar.setVisibility(View.VISIBLE);
-                progressBar.setProgress(40);
+                progressBar.setProgress(35);
                 btnNext.setText("Next");
                 btnSkip.setText("Skip");
                 break;
@@ -79,7 +83,7 @@ public class WelcomeActivity extends AppCompatActivity {
                 titleText.setText("Teamwork Made Simple");
                 descText.setText("Invite your team, assign tasks, and track progress together in real time.");
                 progressBar.setVisibility(View.VISIBLE);
-                progressBar.setProgress(85);
+                progressBar.setProgress(100);
                 btnNext.setText("Next");
                 btnSkip.setText("Skip");
                 break;
@@ -87,7 +91,6 @@ public class WelcomeActivity extends AppCompatActivity {
             case 4:
                 titleText.setText("Stay on Top of Deadlines");
                 descText.setText("Set due dates, get reminders, and sync across all your devices.");
-                progressBar.setVisibility(View.GONE);
                 btnNext.setText("Sign in");
                 btnSkip.setText("Sign up");
                 break;

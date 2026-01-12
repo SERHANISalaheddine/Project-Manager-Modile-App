@@ -13,6 +13,7 @@ import retrofit2.converter.gson.GsonConverterFactory;
  * Provides a configured Retrofit instance with authentication interceptor.
  */
 public final class RetrofitClient {
+
     private static volatile Retrofit retrofit;
 
     private RetrofitClient() {

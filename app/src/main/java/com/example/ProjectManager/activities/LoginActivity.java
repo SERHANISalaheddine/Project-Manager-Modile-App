@@ -32,15 +32,13 @@ import retrofit2.Response;
  */
 public class LoginActivity extends AppCompatActivity {
 
-    private ImageButton btnBack;
     private EditText etEmail;
     private EditText etPassword;
     private ImageButton btnTogglePassword;
     private CheckBox cbRememberMe;
     private TextView tvForgotPassword;
     private Button btnSignIn;
-    private Button btnGoogleSignIn;
-    private Button btnPhoneSignIn;
+
     private TextView tvSignUpLink;
 
     private boolean isPasswordVisible = false;
@@ -63,42 +61,31 @@ public class LoginActivity extends AppCompatActivity {
     }
 
     private void initViews() {
-        btnBack = findViewById(R.id.btn_back);
+
         etEmail = findViewById(R.id.et_email);
         etPassword = findViewById(R.id.et_password);
         btnTogglePassword = findViewById(R.id.btn_toggle_password);
         cbRememberMe = findViewById(R.id.cb_remember_me);
         tvForgotPassword = findViewById(R.id.tv_forgot_password);
         btnSignIn = findViewById(R.id.btn_sign_in);
-        btnGoogleSignIn = findViewById(R.id.btn_google_sign_in);
-        btnPhoneSignIn = findViewById(R.id.btn_phone_sign_in);
+
         tvSignUpLink = findViewById(R.id.tv_sign_up_link);
     }
 
     private void setupListeners() {
-        btnBack.setOnClickListener(v -> onBackPressed());
 
         btnTogglePassword.setOnClickListener(v -> togglePasswordVisibility());
 
         tvForgotPassword.setOnClickListener(v -> {
-            // TODO: Implement forgot password flow
-            Toast.makeText(this, R.string.coming_soon, Toast.LENGTH_SHORT).show();
+            Intent intent = new Intent(LoginActivity.this, ForgotPasswordActivity.class);
+            startActivity(intent);
         });
 
         btnSignIn.setOnClickListener(v -> handleLogin());
 
-        btnGoogleSignIn.setOnClickListener(v -> {
-            // TODO: Implement Google Sign In
-            Toast.makeText(this, R.string.coming_soon, Toast.LENGTH_SHORT).show();
-        });
-
-        btnPhoneSignIn.setOnClickListener(v -> {
-            // TODO: Implement Phone Sign In
-            Toast.makeText(this, R.string.coming_soon, Toast.LENGTH_SHORT).show();
-        });
 
         tvSignUpLink.setOnClickListener(v -> {
-            Intent intent = new Intent(LoginActivity.this, SignUpActivity.class);
+            Intent intent = new Intent(LoginActivity.this, RegisterActivity.class);
             startActivity(intent);
         });
     }
@@ -232,4 +219,5 @@ public class LoginActivity extends AppCompatActivity {
         super.onBackPressed();
         finish();
     }
+
 }
