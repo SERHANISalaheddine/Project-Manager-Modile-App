@@ -1,171 +1,168 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.constraintlayout.widget.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/background_white"
-    android:orientation="vertical"
+    android:background="#F5F6FA"
     tools:context=".activities.CreateProjectActivity">
 
-    <!-- Toolbar / Header -->
-    <RelativeLayout
-        android:layout_width="match_parent"
-        android:layout_height="56dp"
-        android:background="@color/background_white"
-        android:elevation="2dp"
-        android:paddingHorizontal="16dp">
+    <!-- Top bar -->
+    <ImageView
+        android:id="@+id/btn_back"
+        android:layout_width="36dp"
+        android:layout_height="36dp"
+        android:layout_marginStart="16dp"
+        android:layout_marginTop="16dp"
+        android:padding="8dp"
+        android:src="@drawable/ic_back_arrow"
+        app:tint="#7B61FF"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
 
-        <!-- Back Button -->
-        <ImageButton
-            android:id="@+id/btn_back"
-            android:layout_width="40dp"
-            android:layout_height="40dp"
-            android:layout_alignParentStart="true"
-            android:layout_centerVertical="true"
-            android:background="?attr/selectableItemBackgroundBorderless"
-            android:contentDescription="@string/back"
-            android:src="@drawable/ic_back_arrow"
-            app:tint="@color/purple_primary" />
+    <TextView
+        android:id="@+id/tvTitle"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/create_new_project"
+        android:textColor="#1F1F1F"
+        android:textSize="16sp"
+        android:textStyle="bold"
+        app:layout_constraintTop_toTopOf="@id/btn_back"
+        app:layout_constraintBottom_toBottomOf="@id/btn_back"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent" />
 
-        <!-- Title -->
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_centerInParent="true"
-            android:text="@string/create_new_project"
-            android:textColor="@color/text_primary"
-            android:textSize="18sp"
-            android:textStyle="bold" />
-
-    </RelativeLayout>
-
-    <!-- Divider -->
-    <View
-        android:layout_width="match_parent"
-        android:layout_height="1dp"
-        android:background="@color/divider" />
-
-    <!-- Content ScrollView -->
-    <ScrollView
-        android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:layout_weight="1"
-        android:fillViewport="true">
+    <!-- Form container -->
+    <androidx.cardview.widget.CardView
+        android:id="@+id/formCard"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        android:layout_marginStart="16dp"
+        android:layout_marginEnd="16dp"
+        app:cardCornerRadius="14dp"
+        app:cardElevation="0dp"
+        app:cardUseCompatPadding="false"
+        app:layout_constraintTop_toBottomOf="@id/btn_back"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent">
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
-            android:padding="24dp">
+            android:padding="16dp"
+            android:background="#FFFFFF">
 
-            <!-- Project Title Section -->
+            <!-- Project Title -->
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="@string/project_title"
-                android:textColor="@color/text_secondary"
-                android:textSize="14sp" />
+                android:textColor="#6B6B6B"
+                android:textSize="12sp"
+                android:layout_marginBottom="6dp"/>
 
             <LinearLayout
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="8dp"
-                android:background="@drawable/bg_input_field_selector"
+                android:layout_height="48dp"
+                android:background="@drawable/bg_input"
                 android:gravity="center_vertical"
-                android:orientation="horizontal"
-                android:padding="12dp">
+                android:paddingHorizontal="12dp">
 
                 <ImageView
-                    android:layout_width="24dp"
-                    android:layout_height="24dp"
-                    android:contentDescription="@string/project_icon"
+                    android:layout_width="18dp"
+                    android:layout_height="18dp"
                     android:src="@drawable/ic_project_title"
-                    app:tint="@color/purple_primary" />
+                    app:tint="#7B61FF"/>
 
                 <EditText
                     android:id="@+id/et_project_title"
-                    android:layout_width="match_parent"
+                    android:layout_width="0dp"
                     android:layout_height="wrap_content"
-                    android:layout_marginStart="12dp"
-                    android:background="@null"
+                    android:layout_weight="1"
+                    android:layout_marginStart="10dp"
+                    android:background="@android:color/transparent"
                     android:hint="@string/enter_project_title"
-                    android:inputType="text"
-                    android:maxLines="1"
-                    android:textColor="@color/text_primary"
-                    android:textColorHint="@color/text_hint"
-                    android:textSize="16sp" />
-
+                    android:textColor="#1F1F1F"
+                    android:textColorHint="#B4B4B4"
+                    android:textSize="13sp"
+                    android:singleLine="true"/>
             </LinearLayout>
 
-            <!-- Project Description Section -->
+            <!-- Project Description -->
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="24dp"
                 android:text="@string/project_description"
-                android:textColor="@color/text_secondary"
-                android:textSize="14sp" />
+                android:textColor="#6B6B6B"
+                android:textSize="12sp"
+                android:layout_marginTop="14dp"
+                android:layout_marginBottom="6dp"/>
 
-            <EditText
-                android:id="@+id/et_project_description"
+            <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="120dp"
-                android:layout_marginTop="8dp"
-                android:background="@drawable/bg_input_field_selector"
-                android:gravity="top|start"
-                android:hint="@string/enter_project_description"
-                android:inputType="textMultiLine"
-                android:padding="12dp"
-                android:textColor="@color/text_primary"
-                android:textColorHint="@color/text_hint"
-                android:textSize="16sp" />
+                android:background="@drawable/bg_input"
+                android:gravity="top"
+                android:padding="12dp">
 
-            <!-- Add Members Section -->
+                <EditText
+                    android:id="@+id/et_project_description"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:background="@android:color/transparent"
+                    android:hint="@string/enter_project_description"
+                    android:textColor="#1F1F1F"
+                    android:textColorHint="#B4B4B4"
+                    android:textSize="13sp"
+                    android:gravity="top"
+                    android:inputType="textMultiLine"/>
+            </LinearLayout>
+
+            <!-- Add Members -->
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="24dp"
                 android:text="@string/add_members"
-                android:textColor="@color/text_secondary"
-                android:textSize="14sp" />
+                android:textColor="#6B6B6B"
+                android:textSize="12sp"
+                android:layout_marginTop="14dp"
+                android:layout_marginBottom="6dp"/>
 
             <LinearLayout
                 android:id="@+id/layout_select_member"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="8dp"
-                android:background="@drawable/bg_dropdown"
-                android:clickable="true"
-                android:focusable="true"
-                android:foreground="?attr/selectableItemBackground"
+                android:layout_height="48dp"
+                android:background="@drawable/bg_input"
                 android:gravity="center_vertical"
-                android:orientation="horizontal"
-                android:padding="12dp">
+                android:paddingHorizontal="12dp"
+                android:clickable="true"
+                android:focusable="true">
 
                 <ImageView
-                    android:layout_width="24dp"
-                    android:layout_height="24dp"
-                    android:contentDescription="@string/members_icon"
+                    android:layout_width="18dp"
+                    android:layout_height="18dp"
                     android:src="@drawable/ic_members"
-                    app:tint="@color/purple_primary" />
+                    app:tint="#7B61FF"/>
 
                 <TextView
                     android:id="@+id/tv_selected_members"
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
-                    android:layout_marginStart="12dp"
                     android:layout_weight="1"
+                    android:layout_marginStart="10dp"
                     android:text="@string/select_member"
-                    android:textColor="@color/text_hint"
-                    android:textSize="16sp" />
+                    android:textColor="#B4B4B4"
+                    android:textSize="13sp"/>
 
                 <ImageView
-                    android:layout_width="24dp"
-                    android:layout_height="24dp"
-                    android:contentDescription="@string/dropdown_arrow"
-                    android:src="@drawable/ic_dropdown_arrow" />
-
+                    android:layout_width="18dp"
+                    android:layout_height="18dp"
+                    android:src="@drawable/ic_dropdown_arrow"
+                    app:tint="#7B61FF"/>
             </LinearLayout>
 
             <!-- Selected Members Preview (RecyclerView) -->
@@ -179,20 +176,32 @@
                 tools:listitem="@layout/item_member" />
 
         </LinearLayout>
+    </androidx.cardview.widget.CardView>
 
-    </ScrollView>
+    <!-- Bottom fade -->
+    <View
+        android:id="@+id/bottomFade"
+        android:layout_width="0dp"
+        android:layout_height="120dp"
+        android:background="@drawable/bg_bottom_fade"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"/>
 
-    <!-- Create Project Button -->
-    <androidx.appcompat.widget.AppCompatButton
+    <!-- Create Project button -->
+    <Button
         android:id="@+id/btn_create_project"
-        android:layout_width="match_parent"
-        android:layout_height="56dp"
-        android:layout_margin="24dp"
-        android:background="@drawable/bg_button_purple_selector"
+        android:layout_width="0dp"
+        android:layout_height="52dp"
+        android:layout_marginStart="16dp"
+        android:layout_marginEnd="16dp"
+        android:layout_marginBottom="18dp"
+        android:background="@drawable/bg_btn_purple_soft"
         android:text="@string/create_project"
         android:textAllCaps="false"
-        android:textColor="@color/white"
-        android:textSize="16sp"
-        android:textStyle="bold" />
-
-</LinearLayout>
+        android:textSize="14sp"
+        android:textColor="@android:color/white"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"/>
+</androidx.constraintlayout.widget.ConstraintLayout>
