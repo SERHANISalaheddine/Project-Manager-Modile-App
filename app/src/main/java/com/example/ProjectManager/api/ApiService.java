@@ -129,6 +129,15 @@ public interface ApiService {
     @GET("/api/v1/auth/verify-email")
     Call<MessageResponse> verifyEmail(@Query("token") String token);
 
+    @POST("/api/v1/auth/forgot-password")
+    Call<MessageResponse> forgotPassword(@Body ForgotPasswordRequest request);
+
+    @POST("/api/v1/auth/reset-password")
+    Call<MessageResponse> resetPassword(@Body ResetPasswordRequest request);
+
+    @GET("/api/v1/auth/verify-email")
+    Call<MessageResponse> verifyEmail(@Query("token") String token);
+
     // ============== USERS (Require authentication) ==============
 
     @GET("/api/v1/users")
