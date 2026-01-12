@@ -48,6 +48,15 @@
             android:name=".activities.AddMemberActivity"
             android:exported="false" />
 
+        <!-- Task Activities -->
+        <activity
+            android:name=".activities.TaskActivity"
+            android:exported="false" />
+
+        <activity
+            android:name=".activities.CreateTaskActivity"
+            android:exported="false" />
+
     </application>
 
 </manifest>

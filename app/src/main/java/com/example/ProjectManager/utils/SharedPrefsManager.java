@@ -17,6 +17,7 @@ public class SharedPrefsManager {
     private static final String KEY_USER_LAST_NAME = "user_last_name";
     private static final String KEY_REMEMBER_ME = "remember_me";
     private static final String KEY_AUTH_TOKEN = "auth_token";
+    private static final String KEY_LAST_PROJECT_ID = "last_project_id";
 
     private final SharedPreferences prefs;
     private final SharedPreferences.Editor editor;
@@ -137,5 +138,20 @@ public class SharedPrefsManager {
     public void clearAll() {
         editor.clear();
         editor.apply();
+    }
+
+    /**
+     * Save the last opened project ID
+     */
+    public void saveLastProjectId(long projectId) {
+        editor.putLong(KEY_LAST_PROJECT_ID, projectId);
+        editor.apply();
+    }
+
+    /**
+     * Get the last opened project ID
+     */
+    public long getLastProjectId() {
+        return prefs.getLong(KEY_LAST_PROJECT_ID, -1);
     }
 }

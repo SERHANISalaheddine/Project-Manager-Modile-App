@@ -25,6 +25,7 @@ import com.example.ProjectManager.models.Project;
 import com.example.ProjectManager.models.dto.PageResponse;
 import com.example.ProjectManager.models.dto.ProjectResponse;
 import com.example.ProjectManager.utils.SharedPrefsManager;
+import com.example.ProjectManager.utils.NavigationUtils;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -98,6 +99,9 @@ public class MainActivity extends AppCompatActivity implements ProjectAdapter.On
         // Setup RecyclerView
         setupRecyclerView();
 
+        // Update navigation to highlight home icon
+        NavigationUtils.updateNavigation(navHome, navCalendar, navTasks, navProfile, "home");
+
         // Load projects
         loadProjects();
     }
@@ -149,8 +153,8 @@ public class MainActivity extends AppCompatActivity implements ProjectAdapter.On
         });
 
         navTasks.setOnClickListener(v -> {
-            // Navigate to tasks (not implemented)
-            showFeatureNotAvailable("Tasks");
+            // Navigate to last opened project's tasks
+            openTasksForLastProject();
         });
 
         navProfile.setOnClickListener(v -> {
@@ -388,10 +392,15 @@ public class MainActivity extends AppCompatActivity implements ProjectAdapter.On
 
     @Override
     public void onProjectClick(Project project, int position) {
-        // Open project details (not implemented)
-        android.widget.Toast.makeText(this,
-                "Project: " + project.getTitle(),
-                android.widget.Toast.LENGTH_SHORT).show();
+        // Only open tasks for created projects
+        if (isCreatedTabSelected) {
+            openTasksForProject(project);
+        } else {
+            // For projects in "Part Of" tab, only show toast
+            Toast.makeText(this,
+                    "Only created projects can be opened",
+                    Toast.LENGTH_SHORT).show();
+        }
     }
 
     @Override
@@ -419,6 +428,8 @@ public class MainActivity extends AppCompatActivity implements ProjectAdapter.On
         if (isCreatedTabSelected) {
             loadProjects();
         }
+        // Update navigation to highlight home icon
+        NavigationUtils.updateNavigation(navHome, navCalendar, navTasks, navProfile, "home");
     }
 
     @Override
@@ -448,25 +459,44 @@ public class MainActivity extends AppCompatActivity implements ProjectAdapter.On
      * Handle user logout
      */
     private void handleLogout() {
-        new androidx.appcompat.app.AlertDialog.Builder(this)
-                .setTitle("Logout")
-                .setMessage("Are you sure you want to logout?")
-                .setPositiveButton("Logout", (dialog, which) -> {
-                    // Clear user data
-                    prefsManager.clearUserData();
+        prefsManager.clearUserData();
+        Intent intent = new Intent(this, LoginActivity.class);
+        intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
+        startActivity(intent);
+        finish();
+    }
 
-                    // Show success message
-                    android.widget.Toast.makeText(this,
-                            R.string.logout_successful,
-                            android.widget.Toast.LENGTH_SHORT).show();
+    /**
+     * Open task page for a specific project
+     */
+    private void openTasksForProject(Project project) {
+        // Save the last opened project ID
+        prefsManager.saveLastProjectId(project.getId());
 
-                    // Navigate to onboarding screen
-                    Intent intent = new Intent(this, OnboardingActivity.class);
-                    intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
-                    startActivity(intent);
-                    finish();
-                })
-                .setNegativeButton("Cancel", null)
-                .show();
+        // Open TaskActivity with projectId
+        Intent intent = new Intent(this, TaskActivity.class);
+        intent.putExtra("projectId", (long) project.getId());
+        intent.putExtra("projectName", project.getTitle());
+        startActivity(intent);
+    }
+
+    /**
+     * Open task page for the last opened project
+     */
+    private void openTasksForLastProject() {
+        long lastProjectId = prefsManager.getLastProjectId();
+
+        if (lastProjectId <= 0) {
+            // No last project opened, show message
+            Toast.makeText(this,
+                    "Please select a project first",
+                    Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        // Open TaskActivity with last project ID
+        Intent intent = new Intent(this, TaskActivity.class);
+        intent.putExtra("projectId", lastProjectId);
+        startActivity(intent);
     }
 }

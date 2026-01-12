@@ -19,14 +19,16 @@ public class NavigationUtils {
      * @param navHome     Home navigation item
      * @param navCalendar Calendar navigation item
      * @param navTasks    Tasks navigation item
-     * @param currentPage Current page ("home", "calendar", or "tasks")
+     * @param navProfile  Profile navigation item
+     * @param currentPage Current page ("home", "calendar", "tasks", or "profile")
      */
     public static void updateNavigation(LinearLayout navHome, LinearLayout navCalendar, LinearLayout navTasks,
-            String currentPage) {
+            LinearLayout navProfile, String currentPage) {
         // Reset all to inactive (gray)
         resetNavItem(navHome, false);
         resetNavItem(navCalendar, false);
         resetNavItem(navTasks, false);
+        resetNavItem(navProfile, false);
 
         // Set active state for current page
         switch (currentPage.toLowerCase()) {
@@ -39,9 +41,20 @@ public class NavigationUtils {
             case "tasks":
                 setNavItemActive(navTasks, true);
                 break;
+            case "profile":
+                setNavItemActive(navProfile, true);
+                break;
             default:
                 break;
         }
+    }
+
+    /**
+     * Overloaded method for backward compatibility (without profile)
+     */
+    public static void updateNavigation(LinearLayout navHome, LinearLayout navCalendar, LinearLayout navTasks,
+            String currentPage) {
+        updateNavigation(navHome, navCalendar, navTasks, null, currentPage);
     }
 
     /**
