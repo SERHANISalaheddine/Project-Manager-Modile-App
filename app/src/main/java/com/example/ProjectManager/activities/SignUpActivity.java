@@ -2,6 +2,7 @@ package com.example.ProjectManager.activities;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.text.InputType;
 import android.text.TextUtils;
 import android.util.Patterns;
 import android.widget.Button;
@@ -24,10 +25,6 @@ import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
 
-/**
- * Sign up screen where users can create a new account.
- * Uses real API registration.
- */
 public class SignUpActivity extends AppCompatActivity {
 
     private ImageButton btnBack;
@@ -36,12 +33,19 @@ public class SignUpActivity extends AppCompatActivity {
     private EditText etEmail;
     private EditText etPassword;
     private EditText etConfirmPassword;
+
+    private ImageButton btnTogglePassword;
+    private ImageButton btnToggleConfirmPassword;
+
     private Button btnSignUp;
     private TextView tvSignInLink;
 
     private SharedPrefsManager prefsManager;
     private ApiService apiService;
     private boolean isSigningUp = false;
+
+    private boolean isPasswordVisible = false;
+    private boolean isConfirmPasswordVisible = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -58,25 +62,74 @@ public class SignUpActivity extends AppCompatActivity {
 
     private void initViews() {
         btnBack = findViewById(R.id.btn_back);
+
         etFirstName = findViewById(R.id.et_first_name);
         etLastName = findViewById(R.id.et_last_name);
         etEmail = findViewById(R.id.et_email);
         etPassword = findViewById(R.id.et_password);
         etConfirmPassword = findViewById(R.id.et_confirm_password);
+
+        btnTogglePassword = findViewById(R.id.btn_toggle_password);
+        btnToggleConfirmPassword = findViewById(R.id.btn_toggle_confirm_password);
+
         btnSignUp = findViewById(R.id.btn_sign_up);
         tvSignInLink = findViewById(R.id.tv_sign_in_link);
     }
 
     private void setupListeners() {
-        btnBack.setOnClickListener(v -> onBackPressed());
+        btnBack.setOnClickListener(v -> {
+            Intent intent = new Intent(SignUpActivity.this, WelcomeActivity.class);
+            intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
+            startActivity(intent);
+            finish();
+        });
+
+
+        btnTogglePassword.setOnClickListener(v -> togglePassword());
+        btnToggleConfirmPassword.setOnClickListener(v -> toggleConfirmPassword());
 
         btnSignUp.setOnClickListener(v -> handleSignUp());
 
         tvSignInLink.setOnClickListener(v -> {
-            // Navigate back to login
-            finish();
+            // Go to Login screen (better than finish, in case you came from onboarding)
+            startActivity(new Intent(this, LoginActivity.class));
+            // finish();
         });
     }
+
+    private void togglePassword() {
+        isPasswordVisible = !isPasswordVisible;
+
+        if (isPasswordVisible) {
+            etPassword.setTransformationMethod(null);
+            btnTogglePassword.setImageResource(R.drawable.ic_visibility);
+        } else {
+            etPassword.setTransformationMethod(
+                    android.text.method.PasswordTransformationMethod.getInstance()
+            );
+            btnTogglePassword.setImageResource(R.drawable.ic_visibility_off);
+        }
+
+        etPassword.setSelection(etPassword.getText().length());
+    }
+
+
+    private void toggleConfirmPassword() {
+        isConfirmPasswordVisible = !isConfirmPasswordVisible;
+
+        if (isConfirmPasswordVisible) {
+            etConfirmPassword.setTransformationMethod(null);
+            btnToggleConfirmPassword.setImageResource(R.drawable.ic_visibility);
+        } else {
+            etConfirmPassword.setTransformationMethod(
+                    android.text.method.PasswordTransformationMethod.getInstance()
+            );
+            btnToggleConfirmPassword.setImageResource(R.drawable.ic_visibility_off);
+        }
+
+        etConfirmPassword.setSelection(etConfirmPassword.getText().length());
+    }
+
 
     private void handleSignUp() {
         String firstName = etFirstName.getText().toString().trim();
@@ -85,36 +138,28 @@ public class SignUpActivity extends AppCompatActivity {
         String password = etPassword.getText().toString().trim();
         String confirmPassword = etConfirmPassword.getText().toString().trim();
 
-        // Validate inputs
         if (!validateInputs(firstName, lastName, email, password, confirmPassword)) {
             return;
         }
 
-        // Prevent multiple submissions
-        if (isSigningUp) {
-            return;
-        }
+        if (isSigningUp) return;
 
         isSigningUp = true;
         btnSignUp.setEnabled(false);
 
-        // Build registration request
         UserRequestDto request = new UserRequestDto(firstName, lastName, email, password);
 
-        // Make API call to register
         Call<UserResponseDto> call = apiService.register(request);
         call.enqueue(new Callback<UserResponseDto>() {
             @Override
             public void onResponse(Call<UserResponseDto> call, Response<UserResponseDto> response) {
                 if (response.isSuccessful() && response.body() != null) {
                     UserResponseDto user = response.body();
-                    // Check if we have a verification token
                     String verificationToken = user.getVerificationToken();
+
                     if (verificationToken != null && !verificationToken.isEmpty()) {
-                        // Automatically verify email with the token
                         verifyEmailWithToken(verificationToken);
                     } else {
-                        // Registration successful but no token, navigate to login
                         Toast.makeText(SignUpActivity.this, R.string.signup_successful, Toast.LENGTH_SHORT).show();
                         finish();
                     }
@@ -129,38 +174,30 @@ public class SignUpActivity extends AppCompatActivity {
             public void onFailure(Call<UserResponseDto> call, Throwable t) {
                 isSigningUp = false;
                 btnSignUp.setEnabled(true);
-                Toast.makeText(SignUpActivity.this,
-                        "Network error: " + t.getMessage(), Toast.LENGTH_LONG).show();
+                Toast.makeText(SignUpActivity.this, "Network error: " + t.getMessage(), Toast.LENGTH_LONG).show();
             }
         });
     }
 
-    /**
-     * Verify email with the token received from registration
-     */
     private void verifyEmailWithToken(String token) {
         Call<MessageResponse> call = apiService.verifyEmail(token);
         call.enqueue(new Callback<MessageResponse>() {
             @Override
             public void onResponse(Call<MessageResponse> call, Response<MessageResponse> response) {
                 if (response.isSuccessful() && response.body() != null) {
-                    // Email verified successfully
                     Toast.makeText(SignUpActivity.this,
                             "Account created and email verified successfully!",
                             Toast.LENGTH_LONG).show();
-                    finish();
                 } else {
-                    // Verification failed but account was created
                     Toast.makeText(SignUpActivity.this,
                             "Account created but email verification failed. Please try again.",
                             Toast.LENGTH_LONG).show();
-                    finish();
                 }
+                finish();
             }
 
             @Override
             public void onFailure(Call<MessageResponse> call, Throwable t) {
-                // Verification failed but account was created
                 Toast.makeText(SignUpActivity.this,
                         "Account created but email verification failed: " + t.getMessage(),
                         Toast.LENGTH_LONG).show();
@@ -169,9 +206,6 @@ public class SignUpActivity extends AppCompatActivity {
         });
     }
 
-    /**
-     * Handle errors from registration API call
-     */
     private void handleSignUpError(Response<UserResponseDto> response) {
         String errorMessage = "Error creating account";
         if (response.code() == 400) {
@@ -187,22 +221,20 @@ public class SignUpActivity extends AppCompatActivity {
     }
 
     private boolean validateInputs(String firstName, String lastName, String email,
-            String password, String confirmPassword) {
-        // Validate first name
+                                   String password, String confirmPassword) {
+
         if (TextUtils.isEmpty(firstName)) {
             etFirstName.setError(getString(R.string.error_first_name_required));
             etFirstName.requestFocus();
             return false;
         }
 
-        // Validate last name
         if (TextUtils.isEmpty(lastName)) {
             etLastName.setError(getString(R.string.error_last_name_required));
             etLastName.requestFocus();
             return false;
         }
 
-        // Validate email
         if (TextUtils.isEmpty(email)) {
             etEmail.setError(getString(R.string.error_email_required));
             etEmail.requestFocus();
@@ -215,7 +247,6 @@ public class SignUpActivity extends AppCompatActivity {
             return false;
         }
 
-        // Validate password
         if (TextUtils.isEmpty(password)) {
             etPassword.setError(getString(R.string.error_password_required));
             etPassword.requestFocus();
@@ -228,7 +259,6 @@ public class SignUpActivity extends AppCompatActivity {
             return false;
         }
 
-        // Validate password confirmation
         if (!password.equals(confirmPassword)) {
             etConfirmPassword.setError(getString(R.string.error_passwords_dont_match));
             etConfirmPassword.requestFocus();
@@ -238,13 +268,16 @@ public class SignUpActivity extends AppCompatActivity {
         return true;
     }
 
-    // Handle back press using OnBackPressedDispatcher
     private void setupBackPressHandler() {
         getOnBackPressedDispatcher().addCallback(this, new androidx.activity.OnBackPressedCallback(true) {
             @Override
             public void handleOnBackPressed() {
+                Intent intent = new Intent(SignUpActivity.this, WelcomeActivity.class);
+                intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
+                startActivity(intent);
                 finish();
             }
         });
     }
+
 }

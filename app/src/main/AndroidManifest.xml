@@ -36,10 +36,6 @@
             android:exported="false" />
 
         <activity
-            android:name=".activities.RegisterActivity"
-            android:exported="false" />
-
-        <activity
             android:name=".activities.ForgotPasswordActivity"
             android:exported="false"
             android:windowSoftInputMode="adjustResize" />
