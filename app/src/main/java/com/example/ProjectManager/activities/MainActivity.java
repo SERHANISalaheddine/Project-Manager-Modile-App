@@ -24,8 +24,8 @@ import com.example.ProjectManager.database.ProjectDatabaseHelper;
 import com.example.ProjectManager.models.Project;
 import com.example.ProjectManager.models.dto.PageResponse;
 import com.example.ProjectManager.models.dto.ProjectResponse;
-import com.example.ProjectManager.utils.SharedPrefsManager;
 import com.example.ProjectManager.utils.NavigationUtils;
+import com.example.ProjectManager.utils.SharedPrefsManager;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -62,6 +62,8 @@ public class MainActivity extends AppCompatActivity implements ProjectAdapter.On
     private ProjectDatabaseHelper databaseHelper;
     private SharedPrefsManager prefsManager;
     private ApiService apiService;
+
+    // Tab state
     private boolean isCreatedTabSelected = true;
     private int createdProjectsCount = 0;
     private int partOfProjectsCount = 0;
@@ -71,7 +73,6 @@ public class MainActivity extends AppCompatActivity implements ProjectAdapter.On
             new ActivityResultContracts.StartActivityForResult(),
             result -> {
                 if (result.getResultCode() == RESULT_OK) {
-                    // Refresh project list when a new project is created
                     loadProjects();
                 }
             });
@@ -81,28 +82,20 @@ public class MainActivity extends AppCompatActivity implements ProjectAdapter.On
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        // Initialize database helper
         databaseHelper = new ProjectDatabaseHelper(this);
-
-        // Initialize shared preferences manager
         prefsManager = SharedPrefsManager.getInstance(this);
-
-        // Initialize API service
         apiService = RetrofitClient.getInstance(this).create(ApiService.class);
 
-        // Initialize views
         initViews();
-
-        // Setup listeners
         setupListeners();
-
-        // Setup RecyclerView
         setupRecyclerView();
 
-        // Update navigation to highlight home icon
+        // Highlight home icon
         NavigationUtils.updateNavigation(navHome, navCalendar, navTasks, navProfile, "home");
 
-        // Load projects
+        // IMPORTANT: make the UI match the default tab state
+        updateTabsUI();
+
         loadProjects();
     }
 
@@ -134,7 +127,8 @@ public class MainActivity extends AppCompatActivity implements ProjectAdapter.On
      * Setup click listeners
      */
     private void setupListeners() {
-        // Tab listeners
+
+        // Tabs listeners
         tabCreated.setOnClickListener(v -> selectCreatedTab());
         tabPartOf.setOnClickListener(v -> selectPartOfTab());
 
@@ -142,25 +136,13 @@ public class MainActivity extends AppCompatActivity implements ProjectAdapter.On
         btnCreateProject.setOnClickListener(v -> openCreateProjectScreen());
 
         // Bottom navigation listeners
-        navHome.setOnClickListener(v -> {
-            // Already on home, do nothing or refresh
-            loadProjects();
-        });
+        navHome.setOnClickListener(v -> loadProjects());
 
-        navCalendar.setOnClickListener(v -> {
-            // Navigate to calendar (not implemented)
-            showFeatureNotAvailable("Calendar");
-        });
+        navCalendar.setOnClickListener(v -> showFeatureNotAvailable("Calendar"));
 
-        navTasks.setOnClickListener(v -> {
-            // Navigate to last opened project's tasks
-            openTasksForLastProject();
-        });
+        navTasks.setOnClickListener(v -> openTasksForLastProject());
 
-        navProfile.setOnClickListener(v -> {
-            // Navigate to profile (not implemented)
-            showFeatureNotAvailable("Profile");
-        });
+        navProfile.setOnClickListener(v -> showFeatureNotAvailable("Profile"));
     }
 
     /**
@@ -179,8 +161,8 @@ public class MainActivity extends AppCompatActivity implements ProjectAdapter.On
      */
     private void loadProjects() {
         long userId = prefsManager.getUserId();
+
         if (userId <= 0) {
-            // User not logged in properly, show empty state
             showEmptyState();
             return;
         }
@@ -201,23 +183,22 @@ public class MainActivity extends AppCompatActivity implements ProjectAdapter.On
         call.enqueue(new Callback<PageResponse<ProjectResponse>>() {
             @Override
             public void onResponse(Call<PageResponse<ProjectResponse>> call,
-                    Response<PageResponse<ProjectResponse>> response) {
+                                   Response<PageResponse<ProjectResponse>> response) {
                 if (response.isSuccessful() && response.body() != null) {
                     PageResponse<ProjectResponse> pageResponse = response.body();
                     List<ProjectResponse> projectResponses = pageResponse.getContent();
 
-                    // Convert to Project model
                     List<Project> projects = convertToProjects(projectResponses);
                     createdProjectsCount = projects.size();
 
                     projectAdapter.setProjects(projects);
                     updateBadgeCounts();
+                    updateTabsUI();
 
-                    if (projects.isEmpty()) {
-                        showEmptyState();
-                    } else {
-                        hideEmptyState();
-                    }
+
+                    if (projects.isEmpty()) showEmptyState();
+                    else hideEmptyState();
+
                 } else {
                     Toast.makeText(MainActivity.this,
                             "Failed to load projects: " + response.code(),
@@ -231,7 +212,6 @@ public class MainActivity extends AppCompatActivity implements ProjectAdapter.On
                 Toast.makeText(MainActivity.this,
                         "Network error: " + t.getMessage(),
                         Toast.LENGTH_SHORT).show();
-                // Fallback to local database
                 loadProjectsFromDatabase();
             }
         });
@@ -246,23 +226,22 @@ public class MainActivity extends AppCompatActivity implements ProjectAdapter.On
         call.enqueue(new Callback<PageResponse<ProjectResponse>>() {
             @Override
             public void onResponse(Call<PageResponse<ProjectResponse>> call,
-                    Response<PageResponse<ProjectResponse>> response) {
+                                   Response<PageResponse<ProjectResponse>> response) {
                 if (response.isSuccessful() && response.body() != null) {
                     PageResponse<ProjectResponse> pageResponse = response.body();
                     List<ProjectResponse> projectResponses = pageResponse.getContent();
 
-                    // Convert to Project model
                     List<Project> projects = convertToProjects(projectResponses);
                     partOfProjectsCount = projects.size();
 
                     projectAdapter.setProjects(projects);
                     updateBadgeCounts();
+                    updateTabsUI();
 
-                    if (projects.isEmpty()) {
-                        showEmptyState();
-                    } else {
-                        hideEmptyState();
-                    }
+
+                    if (projects.isEmpty()) showEmptyState();
+                    else hideEmptyState();
+
                 } else {
                     Toast.makeText(MainActivity.this,
                             "Failed to load projects: " + response.code(),
@@ -288,11 +267,7 @@ public class MainActivity extends AppCompatActivity implements ProjectAdapter.On
         List<Project> projects = new ArrayList<>();
         if (projectResponses != null) {
             for (ProjectResponse pr : projectResponses) {
-                Project project = new Project(
-                        pr.getId(),
-                        pr.getName(),
-                        pr.getDescription());
-                projects.add(project);
+                projects.add(new Project(pr.getId(), pr.getName(), pr.getDescription()));
             }
         }
         return projects;
@@ -304,14 +279,12 @@ public class MainActivity extends AppCompatActivity implements ProjectAdapter.On
     private void loadProjectsFromDatabase() {
         List<Project> projects = databaseHelper.getAllProjects();
         projectAdapter.setProjects(projects);
+
         createdProjectsCount = projects.size();
         updateBadgeCounts();
 
-        if (projects.isEmpty()) {
-            showEmptyState();
-        } else {
-            hideEmptyState();
-        }
+        if (projects.isEmpty()) showEmptyState();
+        else hideEmptyState();
     }
 
     private void showEmptyState() {
@@ -328,46 +301,65 @@ public class MainActivity extends AppCompatActivity implements ProjectAdapter.On
      * Update the badge counts on tabs
      */
     private void updateBadgeCounts() {
-        // Created tab badge
         tvCreatedBadge.setText(String.valueOf(createdProjectsCount));
         tvCreatedBadge.setVisibility(createdProjectsCount > 0 ? View.VISIBLE : View.GONE);
 
-        // Part Of tab badge
         tvPartOfBadge.setText(String.valueOf(partOfProjectsCount));
         tvPartOfBadge.setVisibility(partOfProjectsCount > 0 ? View.VISIBLE : View.GONE);
     }
 
     /**
-     * Select the "Created" tab
+     * Fix: Update tab UI (background + text colors) so toggling works.
+     */
+    private void updateTabsUI() {
+        if (isCreatedTabSelected) {
+            // Created selected
+            tabCreated.setBackgroundResource(R.drawable.bg_pill_selected);
+            tabPartOf.setBackgroundResource(android.R.color.transparent);
+
+            tvTabCreated.setTextColor(getResources().getColor(android.R.color.white, getTheme()));
+            tvTabPartOf.setTextColor(getResources().getColor(R.color.text_hint, getTheme()));
+
+            // BADGES: selected red, unselected gray
+            tvCreatedBadge.setBackgroundResource(R.drawable.bg_badge_red);
+            tvCreatedBadge.setTextColor(getResources().getColor(android.R.color.white, getTheme()));
+
+            tvPartOfBadge.setBackgroundResource(R.drawable.bg_badge_gray);
+            tvPartOfBadge.setTextColor(getResources().getColor(R.color.text_hint, getTheme()));
+
+        } else {
+            // Part Of selected
+            tabPartOf.setBackgroundResource(R.drawable.bg_pill_selected);
+            tabCreated.setBackgroundResource(android.R.color.transparent);
+
+            tvTabPartOf.setTextColor(getResources().getColor(android.R.color.white, getTheme()));
+            tvTabCreated.setTextColor(getResources().getColor(R.color.text_hint, getTheme()));
+
+            // BADGES: selected red, unselected gray
+            tvPartOfBadge.setBackgroundResource(R.drawable.bg_badge_red);
+            tvPartOfBadge.setTextColor(getResources().getColor(android.R.color.white, getTheme()));
+
+            tvCreatedBadge.setBackgroundResource(R.drawable.bg_badge_gray);
+            tvCreatedBadge.setTextColor(getResources().getColor(R.color.text_hint, getTheme()));
+        }
+    }
+
+
+    /**
+     * Select Created tab
      */
     private void selectCreatedTab() {
         isCreatedTabSelected = true;
-
-        // Update tab appearance
-        tabCreated.setSelected(true);
-        tabPartOf.setSelected(false);
-
-        tvTabCreated.setTextColor(getResources().getColor(R.color.purple_primary, getTheme()));
-        tvTabPartOf.setTextColor(getResources().getColor(R.color.white, getTheme()));
-
-        // Load created projects
+        updateTabsUI();
         loadProjects();
     }
 
     /**
-     * Select the "Part Of" tab
+     * Select Part Of tab
      */
     private void selectPartOfTab() {
         isCreatedTabSelected = false;
-
-        // Update tab appearance
-        tabCreated.setSelected(false);
-        tabPartOf.setSelected(true);
-
-        tvTabCreated.setTextColor(getResources().getColor(R.color.white, getTheme()));
-        tvTabPartOf.setTextColor(getResources().getColor(R.color.purple_primary, getTheme()));
-
-        // Load projects user is a member of from API
+        updateTabsUI();
         loadProjects();
     }
 
@@ -379,43 +371,31 @@ public class MainActivity extends AppCompatActivity implements ProjectAdapter.On
         createProjectLauncher.launch(intent);
     }
 
-    /**
-     * Show a toast for features not yet implemented
-     */
     private void showFeatureNotAvailable(String feature) {
-        android.widget.Toast.makeText(this,
-                feature + " feature coming soon!",
-                android.widget.Toast.LENGTH_SHORT).show();
+        Toast.makeText(this, feature + " feature coming soon!", Toast.LENGTH_SHORT).show();
     }
 
-    // ProjectAdapter.OnProjectClickListener implementation
+    // ProjectAdapter.OnProjectClickListener
 
     @Override
     public void onProjectClick(Project project, int position) {
-        // Only open tasks for created projects
         if (isCreatedTabSelected) {
             openTasksForProject(project);
         } else {
-            // For projects in "Part Of" tab, only show toast
-            Toast.makeText(this,
-                    "Only created projects can be opened",
-                    Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, "Only created projects can be opened", Toast.LENGTH_SHORT).show();
         }
     }
 
     @Override
     public void onProjectLongClick(Project project, int position) {
-        // Show delete confirmation dialog
         new androidx.appcompat.app.AlertDialog.Builder(this)
                 .setTitle("Delete Project")
                 .setMessage("Are you sure you want to delete \"" + project.getTitle() + "\"?")
                 .setPositiveButton("Delete", (dialog, which) -> {
                     databaseHelper.deleteProject(project.getId());
                     projectAdapter.removeProject(position);
-                    loadProjects(); // Refresh to update empty state and badges
-                    android.widget.Toast.makeText(this,
-                            "Project deleted",
-                            android.widget.Toast.LENGTH_SHORT).show();
+                    loadProjects();
+                    Toast.makeText(this, "Project deleted", Toast.LENGTH_SHORT).show();
                 })
                 .setNegativeButton("Cancel", null)
                 .show();
@@ -424,20 +404,14 @@ public class MainActivity extends AppCompatActivity implements ProjectAdapter.On
     @Override
     protected void onResume() {
         super.onResume();
-        // Refresh projects when returning to this screen
-        if (isCreatedTabSelected) {
-            loadProjects();
-        }
-        // Update navigation to highlight home icon
+        loadProjects();
         NavigationUtils.updateNavigation(navHome, navCalendar, navTasks, navProfile, "home");
     }
 
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        if (databaseHelper != null) {
-            databaseHelper.close();
-        }
+        if (databaseHelper != null) databaseHelper.close();
     }
 
     @Override
@@ -455,9 +429,6 @@ public class MainActivity extends AppCompatActivity implements ProjectAdapter.On
         return super.onOptionsItemSelected(item);
     }
 
-    /**
-     * Handle user logout
-     */
     private void handleLogout() {
         prefsManager.clearUserData();
         Intent intent = new Intent(this, LoginActivity.class);
@@ -466,35 +437,22 @@ public class MainActivity extends AppCompatActivity implements ProjectAdapter.On
         finish();
     }
 
-    /**
-     * Open task page for a specific project
-     */
     private void openTasksForProject(Project project) {
-        // Save the last opened project ID
         prefsManager.saveLastProjectId(project.getId());
 
-        // Open TaskActivity with projectId
         Intent intent = new Intent(this, TaskActivity.class);
         intent.putExtra("projectId", (long) project.getId());
         intent.putExtra("projectName", project.getTitle());
         startActivity(intent);
     }
 
-    /**
-     * Open task page for the last opened project
-     */
     private void openTasksForLastProject() {
         long lastProjectId = prefsManager.getLastProjectId();
-
         if (lastProjectId <= 0) {
-            // No last project opened, show message
-            Toast.makeText(this,
-                    "Please select a project first",
-                    Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, "Please select a project first", Toast.LENGTH_SHORT).show();
             return;
         }
 
-        // Open TaskActivity with last project ID
         Intent intent = new Intent(this, TaskActivity.class);
         intent.putExtra("projectId", lastProjectId);
         startActivity(intent);

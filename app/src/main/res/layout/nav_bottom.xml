@@ -5,10 +5,9 @@
     android:id="@+id/bottomNav"
     android:layout_width="match_parent"
     android:layout_height="56dp"
-    android:layout_marginStart="18dp"
-    android:layout_marginEnd="18dp"
     android:gravity="center"
-    android:orientation="horizontal">
+    android:orientation="horizontal"
+    android:background="#1C1C1E">
 
     <!-- Home -->
     <LinearLayout
@@ -36,31 +35,6 @@
             android:textStyle="bold"/>
     </LinearLayout>
 
-    <!-- Calendar -->
-    <LinearLayout
-        android:id="@+id/nav_calendar"
-        android:layout_width="0dp"
-        android:layout_height="match_parent"
-        android:layout_weight="1"
-        android:gravity="center"
-        android:orientation="vertical">
-
-        <ImageView
-            android:layout_width="22dp"
-            android:layout_height="22dp"
-            android:src="@drawable/ic_calendar"
-            app:tint="#B4B4B4"/>
-
-        <TextView
-            android:id="@+id/tv_nav_calendar"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="2dp"
-            android:text="Calendar"
-            android:textColor="#B4B4B4"
-            android:textSize="9sp"/>
-    </LinearLayout>
-
     <!-- Tasks -->
     <LinearLayout
         android:id="@+id/nav_tasks"
@@ -82,6 +56,31 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="2dp"
             android:text="Tasks"
+            android:textColor="#B4B4B4"
+            android:textSize="9sp"/>
+    </LinearLayout>
+
+    <!-- Calendar -->
+    <LinearLayout
+        android:id="@+id/nav_calendar"
+        android:layout_width="0dp"
+        android:layout_height="match_parent"
+        android:layout_weight="1"
+        android:gravity="center"
+        android:orientation="vertical">
+
+        <ImageView
+            android:layout_width="22dp"
+            android:layout_height="22dp"
+            android:src="@drawable/ic_calendar"
+            app:tint="#B4B4B4"/>
+
+        <TextView
+            android:id="@+id/tv_nav_calendar"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="2dp"
+            android:text="Calendar"
             android:textColor="#B4B4B4"
             android:textSize="9sp"/>
     </LinearLayout>
