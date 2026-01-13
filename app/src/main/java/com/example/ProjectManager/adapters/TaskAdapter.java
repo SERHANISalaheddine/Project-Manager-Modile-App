@@ -19,6 +19,23 @@ import java.util.List;
 public class TaskAdapter extends RecyclerView.Adapter<TaskAdapter.TaskVH> {
 
     private final List<TaskResponse> items = new ArrayList<>();
+    private OnTaskClickListener listener;
+
+    public interface OnTaskClickListener {
+        void onTaskClick(TaskResponse task);
+    }
+
+    public TaskAdapter() {
+    }
+
+    public TaskAdapter(List<TaskResponse> tasks, OnTaskClickListener listener) {
+        if (tasks != null) items.addAll(tasks);
+        this.listener = listener;
+    }
+
+    public void setOnTaskClickListener(OnTaskClickListener listener) {
+        this.listener = listener;
+    }
 
     public void setItems(List<TaskResponse> tasks) {
         items.clear();
@@ -86,6 +103,13 @@ public class TaskAdapter extends RecyclerView.Adapter<TaskAdapter.TaskVH> {
                 holder.tvStatus.setBackgroundResource(R.drawable.bg_chip_archived);
                 break;
         }
+
+        // Click listener
+        holder.itemView.setOnClickListener(v -> {
+            if (listener != null) {
+                listener.onTaskClick(task);
+            }
+        });
     }
 
     @Override

@@ -2,11 +2,9 @@ package com.example.ProjectManager.activities;
 
 import android.content.Intent;
 import android.os.Bundle;
-import android.view.Menu;
-import android.view.MenuItem;
 import android.view.View;
-import android.widget.Button;
 import android.widget.LinearLayout;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -16,51 +14,83 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.bumptech.glide.Glide;
 import com.example.ProjectManager.R;
-import com.example.ProjectManager.adapters.ProjectAdapter;
+import com.example.ProjectManager.adapters.DashboardProjectAdapter;
+import com.example.ProjectManager.adapters.DashboardTaskAdapter;
 import com.example.ProjectManager.api.ApiService;
 import com.example.ProjectManager.api.RetrofitClient;
-import com.example.ProjectManager.database.ProjectDatabaseHelper;
-import com.example.ProjectManager.models.Project;
 import com.example.ProjectManager.models.dto.PageResponse;
 import com.example.ProjectManager.models.dto.ProjectResponse;
+import com.example.ProjectManager.models.dto.TaskResponse;
+import com.example.ProjectManager.models.dto.UserResponseDto;
+import com.example.ProjectManager.utils.NavigationUtils;
+import com.example.ProjectManager.utils.SharedPrefsManager;
+import com.google.android.material.button.MaterialButton;
 import com.example.ProjectManager.utils.NavigationUtils;
 import com.example.ProjectManager.utils.SharedPrefsManager;
 
 import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
+import de.hdodenhof.circleimageview.CircleImageView;
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
 
 /**
- * Main activity serving as the home dashboard for the app.
- * Displays a list of projects and provides navigation to create new projects.
+ * Main Dashboard Activity - Matches web app design.
+ * Shows greeting, stats cards, progress overview, recent projects, and upcoming tasks.
  */
-public class MainActivity extends AppCompatActivity implements ProjectAdapter.OnProjectClickListener {
+public class MainActivity extends AppCompatActivity {
 
-    // UI Components
-    private LinearLayout tabCreated;
-    private LinearLayout tabPartOf;
-    private TextView tvTabCreated;
-    private TextView tvTabPartOf;
-    private TextView tvCreatedBadge;
-    private TextView tvPartOfBadge;
-    private RecyclerView rvProjects;
-    private LinearLayout layoutEmptyState;
-    private Button btnCreateProject;
+    // Header Views
+    private TextView tvGreeting;
+    private TextView tvUserName;
+    private CircleImageView ivProfile;
+    private MaterialButton btnNewProject;
+    private MaterialButton btnNewTask;
 
-    // Navigation
+    // Stats Cards
+    private TextView tvTotalProjects;
+    private TextView tvProjectDetails;
+    private TextView tvTotalTasks;
+    private TextView tvTaskDetails;
+    private TextView tvInProgress;
+    private TextView tvCompleted;
+    private TextView tvCompletedDetails;
+
+    // Progress Overview
+    private TextView tvProgressPercent;
+    private ProgressBar progressBar;
+    private TextView tvTodoCount;
+    private TextView tvActiveCount;
+    private TextView tvDoneCount;
+
+    // RecyclerViews
+    private RecyclerView rvRecentProjects;
+    private RecyclerView rvUpcomingTasks;
+    private TextView tvEmptyProjects;
+    private TextView tvEmptyTasks;
+    private TextView btnViewAllProjects;
+    private TextView btnViewAllTasks;
+
+    // Bottom Navigation
     private LinearLayout navHome;
-    private LinearLayout navCalendar;
+    private LinearLayout navProjects;
     private LinearLayout navTasks;
     private LinearLayout navProfile;
 
+    // Adapters
+    private DashboardProjectAdapter projectAdapter;
+    private DashboardTaskAdapter taskAdapter;
+
     // Data
-    private ProjectAdapter projectAdapter;
-    private ProjectDatabaseHelper databaseHelper;
-    private SharedPrefsManager prefsManager;
     private ApiService apiService;
 
     // Tab state
@@ -68,7 +98,15 @@ public class MainActivity extends AppCompatActivity implements ProjectAdapter.On
     private int createdProjectsCount = 0;
     private int partOfProjectsCount = 0;
 
-    // Activity Result Launcher for Create Project
+    // Stats
+    private int ownedProjectsCount = 0;
+    private int memberProjectsCount = 0;
+    private int totalTasksCount = 0;
+    private int todoCount = 0;
+    private int inProgressCount = 0;
+    private int doneCount = 0;
+
+    // Activity launchers
     private final ActivityResultLauncher<Intent> createProjectLauncher = registerForActivityResult(
             new ActivityResultContracts.StartActivityForResult(),
             result -> {
@@ -85,6 +123,7 @@ public class MainActivity extends AppCompatActivity implements ProjectAdapter.On
         databaseHelper = new ProjectDatabaseHelper(this);
         prefsManager = SharedPrefsManager.getInstance(this);
         apiService = RetrofitClient.getInstance(this).create(ApiService.class);
+        userId = prefsManager.getUserId();
 
         initViews();
         setupListeners();
@@ -99,26 +138,41 @@ public class MainActivity extends AppCompatActivity implements ProjectAdapter.On
         loadProjects();
     }
 
-    /**
-     * Initialize view references
-     */
     private void initViews() {
-        // Tabs
-        tabCreated = findViewById(R.id.tab_created);
-        tabPartOf = findViewById(R.id.tab_part_of);
-        tvTabCreated = findViewById(R.id.tv_tab_created);
-        tvTabPartOf = findViewById(R.id.tv_tab_part_of);
-        tvCreatedBadge = findViewById(R.id.tv_created_badge);
-        tvPartOfBadge = findViewById(R.id.tv_part_of_badge);
+        // Header
+        tvGreeting = findViewById(R.id.tv_greeting);
+        tvUserName = findViewById(R.id.tv_user_name);
+        ivProfile = findViewById(R.id.iv_profile);
+        btnNewProject = findViewById(R.id.btn_new_project);
+        btnNewTask = findViewById(R.id.btn_new_task);
 
-        // Content
-        rvProjects = findViewById(R.id.rv_projects);
-        layoutEmptyState = findViewById(R.id.layout_empty_state);
-        btnCreateProject = findViewById(R.id.btn_create_project);
+        // Stats Cards
+        tvTotalProjects = findViewById(R.id.tv_total_projects);
+        tvProjectDetails = findViewById(R.id.tv_project_details);
+        tvTotalTasks = findViewById(R.id.tv_total_tasks);
+        tvTaskDetails = findViewById(R.id.tv_task_details);
+        tvInProgress = findViewById(R.id.tv_in_progress);
+        tvCompleted = findViewById(R.id.tv_completed);
+        tvCompletedDetails = findViewById(R.id.tv_completed_details);
+
+        // Progress Overview
+        tvProgressPercent = findViewById(R.id.tv_progress_percent);
+        progressBar = findViewById(R.id.progress_bar);
+        tvTodoCount = findViewById(R.id.tv_todo_count);
+        tvActiveCount = findViewById(R.id.tv_active_count);
+        tvDoneCount = findViewById(R.id.tv_done_count);
+
+        // RecyclerViews
+        rvRecentProjects = findViewById(R.id.rv_recent_projects);
+        rvUpcomingTasks = findViewById(R.id.rv_upcoming_tasks);
+        tvEmptyProjects = findViewById(R.id.tv_empty_projects);
+        tvEmptyTasks = findViewById(R.id.tv_empty_tasks);
+        btnViewAllProjects = findViewById(R.id.btn_view_all_projects);
+        btnViewAllTasks = findViewById(R.id.btn_view_all_tasks);
 
         // Bottom Navigation
         navHome = findViewById(R.id.nav_home);
-        navCalendar = findViewById(R.id.nav_calendar);
+        navProjects = findViewById(R.id.nav_projects);
         navTasks = findViewById(R.id.nav_tasks);
         navProfile = findViewById(R.id.nav_profile);
     }
@@ -132,8 +186,10 @@ public class MainActivity extends AppCompatActivity implements ProjectAdapter.On
         tabCreated.setOnClickListener(v -> selectCreatedTab());
         tabPartOf.setOnClickListener(v -> selectPartOfTab());
 
-        // Create project button
-        btnCreateProject.setOnClickListener(v -> openCreateProjectScreen());
+        // Update navigation
+        NavigationUtils.updateNavigation(navHome, navProjects, navTasks, navProfile, "home");
+        NavigationUtils.setupNavigationListeners(this, navHome, navProjects, navTasks, navProfile);
+    }
 
         // Bottom navigation listeners
         navHome.setOnClickListener(v -> loadProjects());
@@ -145,15 +201,15 @@ public class MainActivity extends AppCompatActivity implements ProjectAdapter.On
         navProfile.setOnClickListener(v -> showFeatureNotAvailable("Profile"));
     }
 
-    /**
-     * Setup the RecyclerView with adapter
-     */
-    private void setupRecyclerView() {
-        projectAdapter = new ProjectAdapter();
-        projectAdapter.setOnProjectClickListener(this);
+        // View all projects
+        btnViewAllProjects.setOnClickListener(v -> {
+            startActivity(new Intent(this, ProjectsActivity.class));
+        });
 
-        rvProjects.setLayoutManager(new LinearLayoutManager(this));
-        rvProjects.setAdapter(projectAdapter);
+        // View all tasks
+        btnViewAllTasks.setOnClickListener(v -> {
+            startActivity(new Intent(this, MyTasksActivity.class));
+        });
     }
 
     /**
@@ -170,23 +226,36 @@ public class MainActivity extends AppCompatActivity implements ProjectAdapter.On
         if (isCreatedTabSelected) {
             loadCreatedProjects(userId);
         } else {
-            loadMemberProjects(userId);
+            greeting = "Good Evening";
         }
+        tvGreeting.setText(greeting);
     }
 
-    /**
-     * Load projects owned by the user
-     * GET /api/v1/projects/owner/{userId}
-     */
-    private void loadCreatedProjects(long userId) {
-        Call<PageResponse<ProjectResponse>> call = apiService.getProjectsByOwner(userId, 0, 50);
-        call.enqueue(new Callback<PageResponse<ProjectResponse>>() {
+    private void loadUserProfile() {
+        String firstName = prefsManager.getUserFirstName();
+        if (firstName != null && !firstName.isEmpty()) {
+            tvUserName.setText("Welcome, " + firstName + "!");
+        }
+
+        apiService.getUser(userId).enqueue(new Callback<UserResponseDto>() {
             @Override
             public void onResponse(Call<PageResponse<ProjectResponse>> call,
                                    Response<PageResponse<ProjectResponse>> response) {
                 if (response.isSuccessful() && response.body() != null) {
-                    PageResponse<ProjectResponse> pageResponse = response.body();
-                    List<ProjectResponse> projectResponses = pageResponse.getContent();
+                    UserResponseDto user = response.body();
+                    tvUserName.setText("Welcome, " + user.getFirstName() + "!");
+
+                    String profilePicUrl = user.getProfilePictureUrl();
+                    if (profilePicUrl != null && !profilePicUrl.isEmpty()) {
+                        String fullUrl = com.example.ProjectManager.utils.Constants.BASE_URL + profilePicUrl;
+                        Glide.with(MainActivity.this)
+                                .load(fullUrl)
+                                .placeholder(R.drawable.ic_profile)
+                                .error(R.drawable.ic_profile)
+                                .into(ivProfile);
+                    }
+                }
+            }
 
                     List<Project> projects = convertToProjects(projectResponses);
                     createdProjectsCount = projects.size();
@@ -205,6 +274,8 @@ public class MainActivity extends AppCompatActivity implements ProjectAdapter.On
                             Toast.LENGTH_SHORT).show();
                     showEmptyState();
                 }
+                
+                loadMemberProjects(allProjects);
             }
 
             @Override
@@ -217,13 +288,8 @@ public class MainActivity extends AppCompatActivity implements ProjectAdapter.On
         });
     }
 
-    /**
-     * Load projects where the user is a member
-     * GET /api/v1/projects/member/{userId}
-     */
-    private void loadMemberProjects(long userId) {
-        Call<PageResponse<ProjectResponse>> call = apiService.getProjectsByMember(userId, 0, 50);
-        call.enqueue(new Callback<PageResponse<ProjectResponse>>() {
+    private void loadMemberProjects(List<DashboardProjectAdapter.ProjectItem> allProjects) {
+        apiService.getProjectsByMember(userId, 0, 50).enqueue(new Callback<PageResponse<ProjectResponse>>() {
             @Override
             public void onResponse(Call<PageResponse<ProjectResponse>> call,
                                    Response<PageResponse<ProjectResponse>> response) {
@@ -248,14 +314,15 @@ public class MainActivity extends AppCompatActivity implements ProjectAdapter.On
                             Toast.LENGTH_SHORT).show();
                     showEmptyState();
                 }
+                
+                updateProjectsUI(allProjects);
+                loadTasks();
             }
 
             @Override
             public void onFailure(Call<PageResponse<ProjectResponse>> call, Throwable t) {
-                Toast.makeText(MainActivity.this,
-                        "Network error: " + t.getMessage(),
-                        Toast.LENGTH_SHORT).show();
-                showEmptyState();
+                updateProjectsUI(allProjects);
+                loadTasks();
             }
         });
     }
@@ -414,19 +481,34 @@ public class MainActivity extends AppCompatActivity implements ProjectAdapter.On
         if (databaseHelper != null) databaseHelper.close();
     }
 
-    @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        getMenuInflater().inflate(R.menu.menu_main, menu);
-        return true;
+        updateTasksUI(upcomingTasks);
     }
 
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        if (item.getItemId() == R.id.action_logout) {
-            handleLogout();
-            return true;
+    private void updateTasksUI(List<DashboardTaskAdapter.TaskItem> upcomingTasks) {
+        tvTotalTasks.setText(String.valueOf(totalTasksCount));
+        tvInProgress.setText(String.valueOf(inProgressCount));
+        tvCompleted.setText(String.valueOf(doneCount));
+        
+        tvTodoCount.setText(String.valueOf(todoCount));
+        tvActiveCount.setText(String.valueOf(inProgressCount));
+        tvDoneCount.setText(String.valueOf(doneCount));
+
+        int progress = totalTasksCount > 0 ? (doneCount * 100 / totalTasksCount) : 0;
+        tvProgressPercent.setText(progress + "%");
+        progressBar.setProgress(progress);
+
+        List<DashboardTaskAdapter.TaskItem> recentTasks = upcomingTasks.size() > 5 
+                ? upcomingTasks.subList(0, 5) : upcomingTasks;
+        
+        taskAdapter.setTasks(recentTasks);
+
+        if (upcomingTasks.isEmpty()) {
+            rvUpcomingTasks.setVisibility(View.GONE);
+            tvEmptyTasks.setVisibility(View.VISIBLE);
+        } else {
+            rvUpcomingTasks.setVisibility(View.VISIBLE);
+            tvEmptyTasks.setVisibility(View.GONE);
         }
-        return super.onOptionsItemSelected(item);
     }
 
     private void handleLogout() {

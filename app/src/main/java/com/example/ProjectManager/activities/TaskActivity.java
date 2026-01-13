@@ -32,7 +32,7 @@ public class TaskActivity extends AppCompatActivity {
     private ApiService apiService;
 
     private Button createTaskBtn;
-    private LinearLayout navHome, navCalendar, navTasks, navProfile;
+    private LinearLayout navHome, navProjects, navTasks, navProfile;
     private TextView tvProjectName;
 
     // Project filter
@@ -100,39 +100,15 @@ public class TaskActivity extends AppCompatActivity {
      */
     private void initializeNavigation() {
         navHome = findViewById(R.id.nav_home);
-        navCalendar = findViewById(R.id.nav_calendar);
+        navProjects = findViewById(R.id.nav_projects);
         navTasks = findViewById(R.id.nav_tasks);
         navProfile = findViewById(R.id.nav_profile);
 
-        if (navHome != null) {
-            navHome.setOnClickListener(v -> {
-                Intent intent = new Intent(this, MainActivity.class);
-                intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
-                startActivity(intent);
-            });
-        }
-
-        if (navCalendar != null) {
-            navCalendar.setOnClickListener(v -> {
-                Toast.makeText(this, "Calendar feature coming soon!", Toast.LENGTH_SHORT).show();
-            });
-        }
-
-        if (navTasks != null) {
-            navTasks.setOnClickListener(v -> {
-                // Already on tasks, do nothing or refresh
-                loadTasksFromBackend();
-            });
-        }
-
-        if (navProfile != null) {
-            navProfile.setOnClickListener(v -> {
-                Toast.makeText(this, "Profile feature coming soon!", Toast.LENGTH_SHORT).show();
-            });
-        }
+        // Setup navigation listeners
+        NavigationUtils.setupNavigationListeners(this, navHome, navProjects, navTasks, navProfile, "tasks");
 
         // Update navigation to highlight tasks icon
-        NavigationUtils.updateNavigation(navHome, navCalendar, navTasks, "tasks");
+        NavigationUtils.updateNavigation(navHome, navProjects, navTasks, navProfile, "tasks");
     }
 
     @Override
@@ -141,7 +117,7 @@ public class TaskActivity extends AppCompatActivity {
         // Refresh list when coming back from CreateTaskActivity
         loadTasksFromBackend();
         // Update navigation again to ensure correct highlighting
-        NavigationUtils.updateNavigation(navHome, navCalendar, navTasks, "tasks");
+        NavigationUtils.updateNavigation(navHome, navProjects, navTasks, navProfile, "tasks");
     }
 
     private void loadTasksFromBackend() {
