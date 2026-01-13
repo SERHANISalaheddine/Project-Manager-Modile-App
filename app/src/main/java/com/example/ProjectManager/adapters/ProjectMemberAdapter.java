@@ -13,7 +13,7 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.load.engine.DiskCacheStrategy;
 import com.example.ProjectManager.R;
-import com.example.ProjectManager.models.dto.UserResponseDto;
+import com.example.ProjectManager.models.dto.ProjectMemberResponse;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -23,21 +23,21 @@ import de.hdodenhof.circleimageview.CircleImageView;
 public class ProjectMemberAdapter extends RecyclerView.Adapter<ProjectMemberAdapter.MemberViewHolder> {
 
     private final Context context;
-    private List<UserResponseDto> members = new ArrayList<>();
+    private List<ProjectMemberResponse> members = new ArrayList<>();
     private long ownerId = -1;
     private boolean showRemoveButton = false;
     private OnMemberActionListener listener;
 
     public interface OnMemberActionListener {
-        void onMemberClick(UserResponseDto member);
-        void onRemoveMember(UserResponseDto member);
+        void onMemberClick(ProjectMemberResponse member);
+        void onRemoveMember(ProjectMemberResponse member);
     }
 
     public ProjectMemberAdapter(Context context) {
         this.context = context;
     }
 
-    public void setMembers(List<UserResponseDto> members) {
+    public void setMembers(List<ProjectMemberResponse> members) {
         this.members = members != null ? members : new ArrayList<>();
         notifyDataSetChanged();
     }
@@ -65,7 +65,7 @@ public class ProjectMemberAdapter extends RecyclerView.Adapter<ProjectMemberAdap
 
     @Override
     public void onBindViewHolder(@NonNull MemberViewHolder holder, int position) {
-        UserResponseDto member = members.get(position);
+        ProjectMemberResponse member = members.get(position);
         holder.bind(member);
     }
 
@@ -90,7 +90,7 @@ public class ProjectMemberAdapter extends RecyclerView.Adapter<ProjectMemberAdap
             btnRemove = itemView.findViewById(R.id.btn_remove_member);
         }
 
-        void bind(UserResponseDto member) {
+        void bind(ProjectMemberResponse member) {
             // Set name
             String fullName = member.getFirstName() + " " + member.getLastName();
             txtName.setText(fullName);

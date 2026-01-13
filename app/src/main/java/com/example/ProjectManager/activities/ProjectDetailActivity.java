@@ -23,6 +23,7 @@ import com.example.ProjectManager.adapters.TaskAdapter;
 import com.example.ProjectManager.api.ApiService;
 import com.example.ProjectManager.api.RetrofitClient;
 import com.example.ProjectManager.models.dto.PageResponse;
+import com.example.ProjectManager.models.dto.ProjectMemberResponse;
 import com.example.ProjectManager.models.dto.ProjectResponse;
 import com.example.ProjectManager.models.dto.TaskResponse;
 import com.example.ProjectManager.models.dto.UserResponseDto;
@@ -81,7 +82,7 @@ public class ProjectDetailActivity extends AppCompatActivity {
     private long currentUserId;
     private ProjectResponse currentProject;
     private List<TaskResponse> tasks = new ArrayList<>();
-    private List<UserResponseDto> members = new ArrayList<>();
+    private List<ProjectMemberResponse> members = new ArrayList<>();
     
     private SimpleDateFormat dateFormat = new SimpleDateFormat("MMM dd, yyyy", Locale.getDefault());
 
@@ -144,7 +145,7 @@ public class ProjectDetailActivity extends AppCompatActivity {
         memberAdapter = new ProjectMemberAdapter(this);
         memberAdapter.setOnMemberActionListener(new ProjectMemberAdapter.OnMemberActionListener() {
             @Override
-            public void onMemberClick(UserResponseDto member) {
+            public void onMemberClick(ProjectMemberResponse member) {
                 // Show member info
                 Toast.makeText(ProjectDetailActivity.this, 
                     member.getFirstName() + " " + member.getLastName(), 
@@ -152,7 +153,7 @@ public class ProjectDetailActivity extends AppCompatActivity {
             }
 
             @Override
-            public void onRemoveMember(UserResponseDto member) {
+            public void onRemoveMember(ProjectMemberResponse member) {
                 showRemoveMemberConfirmation(member);
             }
         });
@@ -307,10 +308,10 @@ public class ProjectDetailActivity extends AppCompatActivity {
     }
 
     private void loadMembers() {
-        apiService.getProjectMembers(projectId, 0, 100).enqueue(new Callback<PageResponse<UserResponseDto>>() {
+        apiService.getProjectMembers(projectId, 0, 100).enqueue(new Callback<PageResponse<ProjectMemberResponse>>() {
             @Override
-            public void onResponse(@NonNull Call<PageResponse<UserResponseDto>> call,
-                                   @NonNull Response<PageResponse<UserResponseDto>> response) {
+            public void onResponse(@NonNull Call<PageResponse<ProjectMemberResponse>> call,
+                                   @NonNull Response<PageResponse<ProjectMemberResponse>> response) {
                 if (response.isSuccessful() && response.body() != null) {
                     members.clear();
                     members.addAll(response.body().getContent());
@@ -330,7 +331,7 @@ public class ProjectDetailActivity extends AppCompatActivity {
             }
 
             @Override
-            public void onFailure(@NonNull Call<PageResponse<UserResponseDto>> call, @NonNull Throwable t) {}
+            public void onFailure(@NonNull Call<PageResponse<ProjectMemberResponse>> call, @NonNull Throwable t) {}
         });
     }
 
@@ -395,7 +396,7 @@ public class ProjectDetailActivity extends AppCompatActivity {
         }
     }
 
-    private void showMemberOptions(UserResponseDto member) {
+    private void showMemberOptions(ProjectMemberResponse member) {
         // Don't allow removing the owner
         if (member.getId().equals(currentProject.getOwnerId())) {
             Toast.makeText(this, "Cannot remove project owner", Toast.LENGTH_SHORT).show();
@@ -412,7 +413,7 @@ public class ProjectDetailActivity extends AppCompatActivity {
             .show();
     }
 
-    private void showRemoveMemberConfirmation(UserResponseDto member) {
+    private void showRemoveMemberConfirmation(ProjectMemberResponse member) {
         // Don't allow removing the owner
         if (member.getId().equals(currentProject.getOwnerId())) {
             Toast.makeText(this, "Cannot remove project owner", Toast.LENGTH_SHORT).show();
@@ -427,7 +428,7 @@ public class ProjectDetailActivity extends AppCompatActivity {
             .show();
     }
 
-    private void removeMember(UserResponseDto member) {
+    private void removeMember(ProjectMemberResponse member) {
         showLoading(true);
         
         apiService.removeMemberFromProject(projectId, member.getId()).enqueue(new Callback<Void>() {

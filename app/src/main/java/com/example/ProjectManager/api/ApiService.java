@@ -9,22 +9,15 @@ import com.example.ProjectManager.models.dto.LoginRequestDto;
 import com.example.ProjectManager.models.dto.MessageResponse;
 import com.example.ProjectManager.models.dto.PageResponse;
 import com.example.ProjectManager.models.dto.PasswordUpdateRequest;
+import com.example.ProjectManager.models.dto.ProjectMemberResponse;
 import com.example.ProjectManager.models.dto.ProjectResponse;
+import com.example.ProjectManager.models.dto.ResetPasswordRequest;
 import com.example.ProjectManager.models.dto.TaskResponse;
+import com.example.ProjectManager.models.dto.UpdateUserRequest;
 import com.example.ProjectManager.models.dto.UserRequestDto;
 import com.example.ProjectManager.models.dto.UserResponseDto;
 
 import java.util.Map;
-import com.example.ProjectManager.models.dto.ResetPasswordRequest;
-import com.example.ProjectManager.models.dto.UpdateUserRequest;
-import com.example.ProjectManager.models.dto.UserRequestDto;
-import com.example.ProjectManager.models.dto.UserResponseDto;
-
-import okhttp3.MultipartBody;
-import com.example.ProjectManager.models.dto.ResetPasswordRequest;
-import com.example.ProjectManager.models.dto.UpdateUserRequest;
-import com.example.ProjectManager.models.dto.UserRequestDto;
-import com.example.ProjectManager.models.dto.UserResponseDto;
 
 import okhttp3.MultipartBody;
 import retrofit2.Call;
@@ -120,7 +113,7 @@ public interface ApiService {
     Call<Void> addMemberToProject(@Path("projectId") long projectId, @Body AddMemberRequest request);
 
     @GET("/api/v1/projects/{projectId}/members")
-    Call<PageResponse<UserResponseDto>> getProjectMembers(
+    Call<PageResponse<ProjectMemberResponse>> getProjectMembers(
             @Path("projectId") long projectId,
             @Query("page") int page,
             @Query("size") int size);

@@ -21,8 +21,8 @@ import com.example.ProjectManager.mappers.MemberMapper;
 import com.example.ProjectManager.models.Member;
 import com.example.ProjectManager.models.dto.CreateTaskRequest;
 import com.example.ProjectManager.models.dto.PageResponse;
+import com.example.ProjectManager.models.dto.ProjectMemberResponse;
 import com.example.ProjectManager.models.dto.TaskResponse;
-import com.example.ProjectManager.models.dto.UserResponseDto;
 import com.google.android.material.bottomsheet.BottomSheetDialog;
 
 import java.util.ArrayList;
@@ -163,20 +163,20 @@ public class CreateTaskActivity extends AppCompatActivity {
     }
 
     private void loadProjectMembers(AssignMemberAdapter adapter) {
-        api.getProjectMembers(projectId, 0, 50).enqueue(new Callback<PageResponse<UserResponseDto>>() {
+        api.getProjectMembers(projectId, 0, 50).enqueue(new Callback<PageResponse<ProjectMemberResponse>>() {
             @Override
-            public void onResponse(Call<PageResponse<UserResponseDto>> call,
-                                   retrofit2.Response<PageResponse<UserResponseDto>> response) {
+            public void onResponse(Call<PageResponse<ProjectMemberResponse>> call,
+                                   retrofit2.Response<PageResponse<ProjectMemberResponse>> response) {
 
                 if (response.isSuccessful() && response.body() != null) {
 
                     // ⚠️ IMPORTANT: adjust if PageResponse uses a different method name
-                    List<UserResponseDto> users = response.body().getContent();
+                    List<ProjectMemberResponse> users = response.body().getContent();
 
                     memberList.clear();
                     if (users != null) {
-                        for (UserResponseDto u : users) {
-                            memberList.add(MemberMapper.fromUser(u));
+                        for (ProjectMemberResponse u : users) {
+                            memberList.add(MemberMapper.fromProjectMember(u));
                         }
                     }
 
@@ -190,7 +190,7 @@ public class CreateTaskActivity extends AppCompatActivity {
             }
 
             @Override
-            public void onFailure(Call<PageResponse<UserResponseDto>> call, Throwable t) {
+            public void onFailure(Call<PageResponse<ProjectMemberResponse>> call, Throwable t) {
                 Toast.makeText(CreateTaskActivity.this,
                         "Network error: " + t.getMessage(),
                         Toast.LENGTH_SHORT).show();
