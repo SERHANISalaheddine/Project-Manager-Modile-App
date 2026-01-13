@@ -57,7 +57,7 @@ public class WelcomeActivity extends AppCompatActivity {
             step = 4;
             updateUI();
         } else {
-            startActivity(new Intent(this, RegisterActivity.class));
+            startActivity(new Intent(this, SignUpActivity.class));
             finish();
         }
     }
