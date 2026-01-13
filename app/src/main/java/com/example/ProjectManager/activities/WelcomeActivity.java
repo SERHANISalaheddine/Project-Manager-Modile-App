@@ -4,8 +4,8 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
-import android.widget.TextView;
 import android.widget.ProgressBar;
+import android.widget.TextView;
 
 import androidx.appcompat.app.AppCompatActivity;
 
@@ -33,7 +33,8 @@ public class WelcomeActivity extends AppCompatActivity {
         updateUI();
 
         btnNext.setOnClickListener(v -> nextStep());
-        btnSkip.setOnClickListener(v -> previousStep());
+        // Skip should skip forward (or sign up on last step)
+        btnSkip.setOnClickListener(v -> skipOrSignUp());
     }
 
     private void nextStep() {
@@ -41,31 +42,37 @@ public class WelcomeActivity extends AppCompatActivity {
             step++;
             updateUI();
         } else {
-            // Sign In
+            // Last step → Sign In
             startActivity(new Intent(this, LoginActivity.class));
             finish();
         }
     }
 
-    private void previousStep() {
-        if (step == 4){
-            // Sign In
+    /**
+     * Step 1-3: Skip onboarding → jump to last step (4)
+     * Step 4: Sign up
+     */
+    private void skipOrSignUp() {
+        if (step < 4) {
+            step = 4;
+            updateUI();
+        } else {
             startActivity(new Intent(this, RegisterActivity.class));
             finish();
-        } else if (step > 1){
-            step--;
-            updateUI();
         }
     }
 
     private void updateUI() {
+        // Progress for 4 steps
+        progressBar.setVisibility(View.VISIBLE);
+        progressBar.setMax(4);
+        progressBar.setProgress(step);
+
         switch (step) {
 
             case 1:
                 titleText.setText("Welcome to Syncro!");
                 descText.setText("Organize your tasks, projects, and ideas all in one place. Stay productive, stay in sync.");
-                progressBar.setVisibility(View.VISIBLE);
-                progressBar.setProgress(35);
                 btnNext.setText("Next");
                 btnSkip.setText("Skip");
                 break;
@@ -73,8 +80,6 @@ public class WelcomeActivity extends AppCompatActivity {
             case 2:
                 titleText.setText("Your Work, Your Way");
                 descText.setText("Create tasks and manage every project,\nbig or small.");
-                progressBar.setVisibility(View.VISIBLE);
-                progressBar.setProgress(65);
                 btnNext.setText("Next");
                 btnSkip.setText("Skip");
                 break;
@@ -82,8 +87,6 @@ public class WelcomeActivity extends AppCompatActivity {
             case 3:
                 titleText.setText("Teamwork Made Simple");
                 descText.setText("Invite your team, assign tasks, and track progress together in real time.");
-                progressBar.setVisibility(View.VISIBLE);
-                progressBar.setProgress(100);
                 btnNext.setText("Next");
                 btnSkip.setText("Skip");
                 break;
@@ -93,8 +96,9 @@ public class WelcomeActivity extends AppCompatActivity {
                 descText.setText("Set due dates, get reminders, and sync across all your devices.");
                 btnNext.setText("Sign in");
                 btnSkip.setText("Sign up");
+                // Optional: hide progress bar on last screen
+                // progressBar.setVisibility(View.GONE);
                 break;
         }
     }
 }
-
