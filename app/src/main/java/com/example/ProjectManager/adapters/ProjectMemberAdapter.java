@@ -108,8 +108,13 @@ public class ProjectMemberAdapter extends RecyclerView.Adapter<ProjectMemberAdap
                 txtRole.setVisibility(View.GONE);
             }
 
-            // Load avatar using ImageUtils
+            // Load avatar - try profilePictureUrl first, then fallback to userId-based URL
             String imageUrl = ImageUtils.getProfilePictureUrl(member.getProfilePictureUrl());
+            if (imageUrl == null && member.getId() != null) {
+                // Backend doesn't provide profilePictureUrl, use userId-based endpoint
+                imageUrl = ImageUtils.getProfilePictureUrlByUserId(member.getId());
+            }
+            
             if (imageUrl != null) {
                 Glide.with(context)
                         .load(imageUrl)

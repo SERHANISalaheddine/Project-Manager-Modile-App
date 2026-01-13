@@ -4,6 +4,8 @@ import android.content.Context;
 
 import com.example.ProjectManager.utils.Constants;
 
+import java.util.concurrent.TimeUnit;
+
 import okhttp3.OkHttpClient;
 import okhttp3.logging.HttpLoggingInterceptor;
 import retrofit2.Retrofit;
@@ -27,6 +29,9 @@ public final class RetrofitClient {
                     logging.setLevel(HttpLoggingInterceptor.Level.BODY);
 
                     OkHttpClient client = new OkHttpClient.Builder()
+                            .connectTimeout(15, TimeUnit.SECONDS)
+                            .readTimeout(30, TimeUnit.SECONDS)
+                            .writeTimeout(30, TimeUnit.SECONDS)
                             .addInterceptor(new AuthInterceptor(context))
                             .addInterceptor(logging)
                             .build();

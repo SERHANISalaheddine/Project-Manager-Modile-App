@@ -2,6 +2,8 @@ package com.example.ProjectManager.api;
 
 import android.content.Context;
 import android.content.Intent;
+import android.os.Handler;
+import android.os.Looper;
 
 import com.example.ProjectManager.activities.OnboardingActivity;
 import com.example.ProjectManager.utils.SharedPrefsManager;
@@ -19,10 +21,12 @@ import okhttp3.Response;
 public class AuthInterceptor implements Interceptor {
     private final Context context;
     private final SharedPrefsManager prefsManager;
+    private final Handler mainHandler;
 
     public AuthInterceptor(Context context) {
-        this.context = context;
+        this.context = context.getApplicationContext();
         this.prefsManager = SharedPrefsManager.getInstance(context);
+        this.mainHandler = new Handler(Looper.getMainLooper());
     }
 
     @Override
@@ -43,13 +47,15 @@ public class AuthInterceptor implements Interceptor {
 
         // Handle 401 Unauthorized (token expired or invalid)
         if (response.code() == 401) {
-            // Clear user data and redirect to login
+            // Clear user data
             prefsManager.clearUserData();
 
-            // Redirect to OnboardingActivity
-            Intent intent = new Intent(context, OnboardingActivity.class);
-            intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
-            context.startActivity(intent);
+            // Redirect to OnboardingActivity on the main thread
+            mainHandler.post(() -> {
+                Intent intent = new Intent(context, OnboardingActivity.class);
+                intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+                context.startActivity(intent);
+            });
         }
 
         return response;

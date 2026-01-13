@@ -87,6 +87,9 @@ public class TaskActivity extends AppCompatActivity {
             // Save this project as the last opened one
             if (projectId > 0) {
                 prefsManager.saveLastProjectId(projectId);
+                if (projectName != null) {
+                    prefsManager.saveLastProjectName(projectName);
+                }
             }
         }
 
@@ -101,11 +104,14 @@ public class TaskActivity extends AppCompatActivity {
             Intent i = new Intent(TaskActivity.this, CreateTaskActivity.class);
             if (projectId > 0) {
                 i.putExtra("projectId", projectId);
+                i.putExtra("projectName", projectName);
             } else {
                 // If no project selected, try to use last project
                 long lastProjectId = prefsManager.getLastProjectId();
+                String lastProjectName = prefsManager.getLastProjectName();
                 if (lastProjectId > 0) {
                     i.putExtra("projectId", lastProjectId);
+                    i.putExtra("projectName", lastProjectName);
                 }
             }
             startActivity(i);

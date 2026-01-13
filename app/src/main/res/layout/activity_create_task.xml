@@ -123,6 +123,50 @@
                     android:inputType="textMultiLine"/>
             </LinearLayout>
 
+            <!-- Project (shown only when not pre-selected) -->
+            <TextView
+                android:id="@+id/labelProject"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Project"
+                android:textColor="#6B6B6B"
+                android:textSize="12sp"
+                android:layout_marginTop="14dp"
+                android:layout_marginBottom="6dp"/>
+
+            <LinearLayout
+                android:id="@+id/btnProject"
+                android:layout_width="match_parent"
+                android:layout_height="48dp"
+                android:background="@drawable/bg_input"
+                android:gravity="center_vertical"
+                android:paddingHorizontal="12dp"
+                android:clickable="true"
+                android:focusable="true">
+
+                <ImageView
+                    android:layout_width="18dp"
+                    android:layout_height="18dp"
+                    android:src="@drawable/ic_folder"
+                    app:tint="#7B61FF"/>
+
+                <TextView
+                    android:id="@+id/tvSelectedProject"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:layout_marginStart="10dp"
+                    android:text="Select Project"
+                    android:textColor="#B4B4B4"
+                    android:textSize="13sp"/>
+
+                <ImageView
+                    android:layout_width="18dp"
+                    android:layout_height="18dp"
+                    android:src="@drawable/ic_chevron_down"
+                    app:tint="#7B61FF"/>
+            </LinearLayout>
+
             <!-- Assign To -->
             <TextView
                 android:layout_width="wrap_content"

@@ -155,14 +155,9 @@ public class SignUpActivity extends AppCompatActivity {
             public void onResponse(Call<UserResponseDto> call, Response<UserResponseDto> response) {
                 if (response.isSuccessful() && response.body() != null) {
                     UserResponseDto user = response.body();
-                    String verificationToken = user.getVerificationToken();
-
-                    if (verificationToken != null && !verificationToken.isEmpty()) {
-                        verifyEmailWithToken(verificationToken);
-                    } else {
-                        Toast.makeText(SignUpActivity.this, R.string.signup_successful, Toast.LENGTH_SHORT).show();
-                        finish();
-                    }
+                    
+                    // Show success dialog - email verification link was sent
+                    showEmailSentDialog(user.getEmail());
                 } else {
                     isSigningUp = false;
                     btnSignUp.setEnabled(true);
@@ -179,31 +174,20 @@ public class SignUpActivity extends AppCompatActivity {
         });
     }
 
-    private void verifyEmailWithToken(String token) {
-        Call<MessageResponse> call = apiService.verifyEmail(token);
-        call.enqueue(new Callback<MessageResponse>() {
-            @Override
-            public void onResponse(Call<MessageResponse> call, Response<MessageResponse> response) {
-                if (response.isSuccessful() && response.body() != null) {
-                    Toast.makeText(SignUpActivity.this,
-                            "Account created and email verified successfully!",
-                            Toast.LENGTH_LONG).show();
-                } else {
-                    Toast.makeText(SignUpActivity.this,
-                            "Account created but email verification failed. Please try again.",
-                            Toast.LENGTH_LONG).show();
-                }
+    private void showEmailSentDialog(String email) {
+        new android.app.AlertDialog.Builder(this)
+            .setTitle("Verify your email")
+            .setMessage("A verification email has been sent to " + email + ". Please click the link in the email to activate your account.")
+            .setPositiveButton("OK", (dialog, which) -> {
+                dialog.dismiss();
+                // Navigate to login screen
+                Intent intent = new Intent(SignUpActivity.this, LoginActivity.class);
+                intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
+                startActivity(intent);
                 finish();
-            }
-
-            @Override
-            public void onFailure(Call<MessageResponse> call, Throwable t) {
-                Toast.makeText(SignUpActivity.this,
-                        "Account created but email verification failed: " + t.getMessage(),
-                        Toast.LENGTH_LONG).show();
-                finish();
-            }
-        });
+            })
+            .setCancelable(false)
+            .show();
     }
 
     private void handleSignUpError(Response<UserResponseDto> response) {

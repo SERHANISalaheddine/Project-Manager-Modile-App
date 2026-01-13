@@ -185,8 +185,9 @@ public class ProjectsActivity extends AppCompatActivity {
         if (btnCreateProject == null) return;
         
         btnCreateProject.setOnClickListener(v -> {
-            // TODO: Open create project dialog or activity
-            Toast.makeText(this, "Create project coming soon", Toast.LENGTH_SHORT).show();
+            // Open create project activity
+            Intent intent = new Intent(ProjectsActivity.this, CreateProjectActivity.class);
+            startActivity(intent);
         });
     }
 
