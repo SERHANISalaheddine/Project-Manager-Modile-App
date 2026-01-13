@@ -58,8 +58,8 @@ public interface ApiService {
     @POST("/api/v1/auth/forgot-password")
     Call<MessageResponse> forgotPassword(@Body ForgotPasswordRequest request);
 
-    @POST("/api/v1/auth/reset-password")
-    Call<MessageResponse> resetPassword(@Body ResetPasswordRequest request);
+    @POST("/api/v1/auth/reset-password/{token}")
+    Call<MessageResponse> resetPassword(@Path("token") String token, @Body ResetPasswordRequest request);
 
     @GET("/api/v1/auth/verify-email")
     Call<MessageResponse> verifyEmail(@Query("token") String token);

@@ -5,53 +5,66 @@ import java.util.Date;
 public class TaskResponse {
     private long id;
     private String name;
-    private String title;       // Added to match web app
     private String content;
-    private String description;  // Added
     private String status;
-    private String priority;     // Added for priority support
-    private long userId;
-    private Long assigneeId;     // Added (nullable)
     private long projectId;
-    private String dueDate;      // Added
-    private ProjectResponse project; // Added for nested project info
+    private String projectName;  // Set by mobile when available
+    private String createdAt;
+    private String updatedAt;
+    private Assignee assignee;   // Matches backend RichTaskResponse
+
+    // Nested Assignee class to match backend structure
+    public static class Assignee {
+        private Long id;
+        private String firstName;
+        private String lastName;
+        private String email;
+        private String profilePictureUrl;
+
+        public Long getId() { return id; }
+        public String getFirstName() { return firstName; }
+        public String getLastName() { return lastName; }
+        public String getEmail() { return email; }
+        public String getProfilePictureUrl() { return profilePictureUrl; }
+
+        public void setId(Long id) { this.id = id; }
+        public void setFirstName(String firstName) { this.firstName = firstName; }
+        public void setLastName(String lastName) { this.lastName = lastName; }
+        public void setEmail(String email) { this.email = email; }
+        public void setProfilePictureUrl(String profilePictureUrl) { this.profilePictureUrl = profilePictureUrl; }
+    }
 
     // Getters
     public long getId() { return id; }
     public String getName() { return name; }
-    public String getTitle() { return title != null ? title : name; }
+    public String getTitle() { return name; }  // Alias for compatibility
     public String getContent() { return content; }
-    public String getDescription() { return description != null ? description : content; }
+    public String getDescription() { return content; }  // Alias for compatibility
     public String getStatus() { return status; }
-    public String getPriority() { return priority != null ? priority : "MEDIUM"; }
-    public long getUserId() { return userId; }
-    public Long getAssigneeId() { return assigneeId; }
     public long getProjectId() { return projectId; }
-    public String getDueDate() { return dueDate; }
-    public ProjectResponse getProject() { return project; }
+    public String getProjectName() { return projectName; }
+    public String getCreatedAt() { return createdAt; }
+    public String getUpdatedAt() { return updatedAt; }
+    public Assignee getAssignee() { return assignee; }
+
+    // Convenience method to get userId from assignee
+    public long getUserId() { 
+        return assignee != null && assignee.getId() != null ? assignee.getId() : 0; 
+    }
     
-    // Parse due date as Date object
-    public Date getDueDateAsDate() {
-        if (dueDate == null || dueDate.isEmpty()) return null;
-        try {
-            java.text.SimpleDateFormat sdf = new java.text.SimpleDateFormat("yyyy-MM-dd", java.util.Locale.getDefault());
-            return sdf.parse(dueDate);
-        } catch (Exception e) {
-            return null;
-        }
+    // Convenience method to get assignee ID (nullable)
+    public Long getAssigneeId() { 
+        return assignee != null ? assignee.getId() : null; 
     }
 
-    // Setters si besoin
+    // Setters
     public void setId(long id) { this.id = id; }
     public void setName(String name) { this.name = name; }
-    public void setTitle(String title) { this.title = title; }
     public void setContent(String content) { this.content = content; }
-    public void setDescription(String description) { this.description = description; }
     public void setStatus(String status) { this.status = status; }
-    public void setPriority(String priority) { this.priority = priority; }
-    public void setUserId(long userId) { this.userId = userId; }
-    public void setAssigneeId(Long assigneeId) { this.assigneeId = assigneeId; }
     public void setProjectId(long projectId) { this.projectId = projectId; }
-    public void setDueDate(String dueDate) { this.dueDate = dueDate; }
-    public void setProject(ProjectResponse project) { this.project = project; }
+    public void setProjectName(String projectName) { this.projectName = projectName; }
+    public void setCreatedAt(String createdAt) { this.createdAt = createdAt; }
+    public void setUpdatedAt(String updatedAt) { this.updatedAt = updatedAt; }
+    public void setAssignee(Assignee assignee) { this.assignee = assignee; }
 }

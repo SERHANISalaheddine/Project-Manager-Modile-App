@@ -189,19 +189,26 @@ public class TaskDetailActivity extends AppCompatActivity {
         }
 
         // Load assignee info
-        if (currentTask.getAssigneeId() != null) {
-            loadAssigneeInfo(currentTask.getAssigneeId());
+        if (currentTask.getAssignee() != null && currentTask.getAssignee().getId() != null) {
+            // Use assignee info directly from task response
+            TaskResponse.Assignee assignee = currentTask.getAssignee();
+            String name = (assignee.getFirstName() + " " + assignee.getLastName()).trim();
+            txtAssigneeName.setText(name.isEmpty() ? "Unknown" : name);
+            
+            // Load avatar using assignee ID
+            String avatarUrl = Constants.BASE_URL + "/api/v1/users/" + assignee.getId() + "/profile-picture";
+            Glide.with(TaskDetailActivity.this)
+                    .load(avatarUrl)
+                    .placeholder(R.drawable.ic_profile_placeholder)
+                    .error(R.drawable.ic_profile_placeholder)
+                    .into(imgAssigneeAvatar);
         } else {
             txtAssigneeName.setText("Unassigned");
             imgAssigneeAvatar.setImageResource(R.drawable.ic_profile_placeholder);
         }
 
-        // Due date
-        if (currentTask.getDueDate() != null) {
-            txtDueDate.setText("Due: " + dateFormat.format(currentTask.getDueDate()));
-        } else {
-            txtDueDate.setText("No due date");
-        }
+        // Due date - not available from current backend
+        txtDueDate.setText("No due date");
 
         btnSaveStatus.setEnabled(false);
     }

@@ -14,11 +14,11 @@ public final class Constants {
     // public static final String BASE_URL = "http://10.0.2.2:8080";
     //
     // For PHYSICAL DEVICE on same WiFi network:
-    // Replace with your computer's local IP (e.g., 192.168.1.xxx)
-    public static final String BASE_URL = "http://192.168.11.112:8080";
+    // Replace with your computer's local IP (e.g., 192.168.0.100)
+    // public static final String BASE_URL = "http://192.168.0.100:8080";
     //
-    // For localhost testing on emulator:
-    // public static final String BASE_URL = "http://10.0.2.2:8080";
+    // Current setting - EMULATOR:
+    public static final String BASE_URL = "http://10.0.2.2:8080";
 
     // Route prefixes per gateway
     public static final String AUTH_PREFIX = "/api/v1/auth";

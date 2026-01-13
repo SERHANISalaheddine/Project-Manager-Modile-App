@@ -82,24 +82,20 @@ public class TaskCardAdapter extends RecyclerView.Adapter<TaskCardAdapter.ViewHo
             String status = task.getStatus() != null ? task.getStatus() : "TODO";
             setupStatus(status);
 
-            // Project name
-            if (task.getProject() != null && task.getProject().getName() != null) {
-                tvProjectName.setText(task.getProject().getName());
+            // Project name - use projectName if available, otherwise show ID
+            if (task.getProjectName() != null && !task.getProjectName().isEmpty()) {
+                tvProjectName.setText(task.getProjectName());
             } else {
                 tvProjectName.setText("Project #" + task.getProjectId());
             }
 
-            // Priority
-            String priority = task.getPriority() != null ? task.getPriority() : "MEDIUM";
+            // Priority - not available from backend, default to MEDIUM
+            String priority = "MEDIUM";
             setupPriority(priority);
 
-            // Due date
-            if (task.getDueDateAsDate() != null) {
-                SimpleDateFormat sdf = new SimpleDateFormat("MMM dd", Locale.getDefault());
-                tvDueDate.setText("Due: " + sdf.format(task.getDueDateAsDate()));
-            } else {
-                tvDueDate.setText("No due date");
-            }
+            // Due date - not available from current backend, hide it
+            tvDueDate.setText("");
+            tvDueDate.setVisibility(android.view.View.GONE);
 
             // Click listener
             cardView.setOnClickListener(v -> {

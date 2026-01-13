@@ -8,114 +8,87 @@
     android:background="@color/background"
     tools:context=".activities.MainActivity">
 
-    <!-- HEADER BACKGROUND -->
-    <ImageView
-        android:id="@+id/headerBackground"
-        android:layout_width="0dp"
-        android:layout_height="200dp"
-        android:scaleType="fitXY"
-        android:src="@drawable/header_curved_bottom"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"/>
+    <androidx.core.widget.NestedScrollView
+        android:id="@+id/scrollView"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:clipToPadding="false"
+        android:paddingBottom="140dp"
+        android:fillViewport="true">
 
-    <!-- Header illustration (top right) -->
-    <ImageView
-        android:id="@+id/iv_header_illustration"
-        android:layout_width="84dp"
-        android:layout_height="84dp"
-        android:layout_marginTop="26dp"
-        android:layout_marginEnd="16dp"
-        android:src="@drawable/ic_header_note"
-        android:contentDescription="@null"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"/>
-
-    <TextView
-        android:id="@+id/title"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="22dp"
-        android:layout_marginTop="52dp"
-        android:text="@string/challenges_awaiting"
-        android:textColor="@android:color/white"
-        android:textSize="22sp"
-        android:textStyle="bold"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"/>
-
-    <TextView
-        android:id="@+id/subtitle"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="6dp"
-        android:text="@string/lets_tackle_your_to_do_list"
-        android:textColor="#E8E8FF"
-        android:textSize="13sp"
-        app:layout_constraintStart_toStartOf="@id/title"
-        app:layout_constraintTop_toBottomOf="@id/title"/>
-
-    <!-- TABS (pill container) -->
-    <LinearLayout
-        android:id="@+id/tabContainer"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="150dp"
-        android:layout_marginStart="22dp"
-        android:layout_marginEnd="22dp"
-        android:background="@drawable/bg_tabs_container"
-        android:padding="6dp"
-        android:gravity="center"
-        android:orientation="horizontal"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent">
-
-        <!-- Created Tab (selected) -->
         <LinearLayout
-            android:id="@+id/tab_created"
-            android:layout_width="0dp"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:background="@drawable/bg_pill_selected"
-            android:paddingHorizontal="20dp"
-            android:paddingVertical="10dp"
-            android:gravity="center"
-            android:orientation="horizontal">
+            android:orientation="vertical">
 
-            <TextView
-                android:id="@+id/tv_tab_created"
-                android:layout_width="wrap_content"
+            <!-- Header with Gradient Background -->
+            <androidx.constraintlayout.widget.ConstraintLayout
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="@string/created"
-                android:textColor="@android:color/white"
-                android:textSize="12sp"/>
+                android:background="@drawable/bg_header_gradient"
+                android:paddingHorizontal="20dp"
+                android:paddingTop="48dp"
+                android:paddingBottom="32dp">
 
-            <TextView
-                android:id="@+id/tv_created_badge"
-                android:layout_width="18dp"
-                android:layout_height="18dp"
-                android:layout_marginStart="8dp"
-                android:background="@drawable/bg_badge_red"
-                android:gravity="center"
-                android:text="0"
-                android:textColor="@android:color/white"
-                android:textSize="10sp"
-                android:textStyle="bold"/>
-        </LinearLayout>
+                <!-- Greeting Text -->
+                <TextView
+                    android:id="@+id/tv_greeting"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:text="Good Morning"
+                    android:textColor="@android:color/white"
+                    android:textSize="14sp"
+                    app:layout_constraintTop_toTopOf="parent"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintEnd_toStartOf="@id/iv_profile"/>
 
-        <!-- Part Of Tab -->
-        <LinearLayout
-            android:id="@+id/tab_part_of"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:layout_marginStart="8dp"
-            android:paddingHorizontal="20dp"
-            android:paddingVertical="10dp"
-            android:gravity="center"
-            android:orientation="horizontal">
+                <!-- User Name -->
+                <TextView
+                    android:id="@+id/tv_user_name"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="4dp"
+                    android:text="Welcome back!"
+                    android:textColor="@android:color/white"
+                    android:textSize="22sp"
+                    android:textStyle="bold"
+                    app:layout_constraintTop_toBottomOf="@id/tv_greeting"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintEnd_toStartOf="@id/iv_profile"/>
 
+                <!-- Profile Picture -->
+                <de.hdodenhof.circleimageview.CircleImageView
+                    android:id="@+id/iv_profile"
+                    android:layout_width="48dp"
+                    android:layout_height="48dp"
+                    android:src="@drawable/ic_profile"
+                    app:civ_border_width="2dp"
+                    app:civ_border_color="@android:color/white"
+                    app:layout_constraintTop_toTopOf="parent"
+                    app:layout_constraintEnd_toEndOf="parent"/>
+
+                <!-- Action Buttons -->
+                <LinearLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="20dp"
+                    android:orientation="horizontal"
+                    app:layout_constraintTop_toBottomOf="@id/tv_user_name"
+                    app:layout_constraintStart_toStartOf="parent">
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/btn_new_project"
+                        android:layout_width="wrap_content"
+                        android:layout_height="40dp"
+                        android:text="New Project"
+                        android:textAllCaps="false"
+                        android:textColor="@color/primary"
+                        android:textSize="13sp"
+                        app:backgroundTint="@android:color/white"
+                        app:cornerRadius="20dp"
+                        app:icon="@drawable/ic_add"
+                        app:iconTint="@color/primary"
+                        app:iconSize="18dp"/>
 
                     <com.google.android.material.button.MaterialButton
                         android:id="@+id/btn_new_task"
@@ -142,23 +115,299 @@
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="@string/part_of"
-                android:textColor="#8F8F8F"
-                android:textSize="12sp"/>
+                android:layout_marginTop="-24dp"
+                android:orientation="vertical"
+                android:paddingHorizontal="16dp">
 
-            <TextView
-                android:id="@+id/tv_part_of_badge"
-                android:layout_width="18dp"
-                android:layout_height="18dp"
-                android:layout_marginStart="8dp"
-                android:background="@drawable/bg_badge_gray"
-                android:gravity="center"
-                android:text="0"
-                android:textColor="@android:color/white"
-                android:textSize="10sp"
-                android:textStyle="bold"/>
+                <!-- Row 1: Total Projects & Total Tasks -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:weightSum="2">
 
-        </LinearLayout>
+                    <!-- Total Projects Card -->
+                    <androidx.cardview.widget.CardView
+                        android:id="@+id/card_total_projects"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:layout_marginEnd="6dp"
+                        app:cardCornerRadius="16dp"
+                        app:cardElevation="4dp"
+                        app:cardBackgroundColor="@android:color/white">
+
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:orientation="vertical"
+                            android:padding="16dp">
+
+                            <LinearLayout
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:orientation="horizontal"
+                                android:gravity="center_vertical">
+
+                                <ImageView
+                                    android:layout_width="40dp"
+                                    android:layout_height="40dp"
+                                    android:padding="8dp"
+                                    android:background="@drawable/bg_stat_icon_blue"
+                                    android:src="@drawable/ic_folder"/>
+
+                                <View
+                                    android:layout_width="0dp"
+                                    android:layout_height="0dp"
+                                    android:layout_weight="1"/>
+
+                                <TextView
+                                    android:id="@+id/tv_total_projects"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:text="0"
+                                    android:textColor="@color/text_primary"
+                                    android:textSize="28sp"
+                                    android:textStyle="bold"/>
+                            </LinearLayout>
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_marginTop="8dp"
+                                android:text="Total Projects"
+                                android:textColor="@color/text_secondary"
+                                android:textSize="13sp"/>
+
+                            <TextView
+                                android:id="@+id/tv_project_details"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_marginTop="2dp"
+                                android:text="0 owned · 0 member"
+                                android:textColor="@color/text_tertiary"
+                                android:textSize="11sp"/>
+
+                        </LinearLayout>
+                    </androidx.cardview.widget.CardView>
+
+                    <!-- Total Tasks Card -->
+                    <androidx.cardview.widget.CardView
+                        android:id="@+id/card_total_tasks"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:layout_marginStart="6dp"
+                        app:cardCornerRadius="16dp"
+                        app:cardElevation="4dp"
+                        app:cardBackgroundColor="@android:color/white">
+
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:orientation="vertical"
+                            android:padding="16dp">
+
+                            <LinearLayout
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:orientation="horizontal"
+                                android:gravity="center_vertical">
+
+                                <ImageView
+                                    android:layout_width="40dp"
+                                    android:layout_height="40dp"
+                                    android:padding="8dp"
+                                    android:background="@drawable/bg_stat_icon_purple"
+                                    android:src="@drawable/ic_tasks"/>
+
+                                <View
+                                    android:layout_width="0dp"
+                                    android:layout_height="0dp"
+                                    android:layout_weight="1"/>
+
+                                <TextView
+                                    android:id="@+id/tv_total_tasks"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:text="0"
+                                    android:textColor="@color/text_primary"
+                                    android:textSize="28sp"
+                                    android:textStyle="bold"/>
+                            </LinearLayout>
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_marginTop="8dp"
+                                android:text="Total Tasks"
+                                android:textColor="@color/text_secondary"
+                                android:textSize="13sp"/>
+
+                            <TextView
+                                android:id="@+id/tv_task_details"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_marginTop="2dp"
+                                android:text="Assigned to you"
+                                android:textColor="@color/text_tertiary"
+                                android:textSize="11sp"/>
+
+                        </LinearLayout>
+                    </androidx.cardview.widget.CardView>
+
+                </LinearLayout>
+
+                <!-- Row 2: In Progress & Completed -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="12dp"
+                    android:orientation="horizontal"
+                    android:weightSum="2">
+
+                    <!-- In Progress Card -->
+                    <androidx.cardview.widget.CardView
+                        android:id="@+id/card_in_progress"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:layout_marginEnd="6dp"
+                        app:cardCornerRadius="16dp"
+                        app:cardElevation="4dp"
+                        app:cardBackgroundColor="@android:color/white">
+
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:orientation="vertical"
+                            android:padding="16dp">
+
+                            <LinearLayout
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:orientation="horizontal"
+                                android:gravity="center_vertical">
+
+                                <ImageView
+                                    android:layout_width="40dp"
+                                    android:layout_height="40dp"
+                                    android:padding="8dp"
+                                    android:background="@drawable/bg_stat_icon_orange"
+                                    android:src="@drawable/ic_clock"/>
+
+                                <View
+                                    android:layout_width="0dp"
+                                    android:layout_height="0dp"
+                                    android:layout_weight="1"/>
+
+                                <TextView
+                                    android:id="@+id/tv_in_progress"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:text="0"
+                                    android:textColor="@color/text_primary"
+                                    android:textSize="28sp"
+                                    android:textStyle="bold"/>
+                            </LinearLayout>
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_marginTop="8dp"
+                                android:text="In Progress"
+                                android:textColor="@color/text_secondary"
+                                android:textSize="13sp"/>
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_marginTop="2dp"
+                                android:text="Active tasks"
+                                android:textColor="@color/text_tertiary"
+                                android:textSize="11sp"/>
+
+                        </LinearLayout>
+                    </androidx.cardview.widget.CardView>
+
+                    <!-- Completed Card -->
+                    <androidx.cardview.widget.CardView
+                        android:id="@+id/card_completed"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:layout_marginStart="6dp"
+                        app:cardCornerRadius="16dp"
+                        app:cardElevation="4dp"
+                        app:cardBackgroundColor="@android:color/white">
+
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:orientation="vertical"
+                            android:padding="16dp">
+
+                            <LinearLayout
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:orientation="horizontal"
+                                android:gravity="center_vertical">
+
+                                <ImageView
+                                    android:layout_width="40dp"
+                                    android:layout_height="40dp"
+                                    android:padding="8dp"
+                                    android:background="@drawable/bg_stat_icon_green"
+                                    android:src="@drawable/ic_check_circle"/>
+
+                                <View
+                                    android:layout_width="0dp"
+                                    android:layout_height="0dp"
+                                    android:layout_weight="1"/>
+
+                                <TextView
+                                    android:id="@+id/tv_completed"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:text="0"
+                                    android:textColor="@color/text_primary"
+                                    android:textSize="28sp"
+                                    android:textStyle="bold"/>
+                            </LinearLayout>
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_marginTop="8dp"
+                                android:text="Completed"
+                                android:textColor="@color/text_secondary"
+                                android:textSize="13sp"/>
+
+                            <TextView
+                                android:id="@+id/tv_completed_details"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_marginTop="2dp"
+                                android:text="Done tasks"
+                                android:textColor="@color/text_tertiary"
+                                android:textSize="11sp"/>
+
+                        </LinearLayout>
+                    </androidx.cardview.widget.CardView>
+
+                </LinearLayout>
+
+            </LinearLayout>
+
+            <!-- Progress Overview Section -->
+            <androidx.cardview.widget.CardView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="20dp"
+                android:layout_marginHorizontal="16dp"
+                app:cardCornerRadius="16dp"
+                app:cardElevation="4dp"
+                app:cardBackgroundColor="@android:color/white">
 
                 <LinearLayout
                     android:layout_width="match_parent"
@@ -166,51 +415,13 @@
                     android:orientation="vertical"
                     android:padding="20dp">
 
-
-    <!-- LIST -->
-
-    <!-- Empty State -->
-    <androidx.recyclerview.widget.RecyclerView
-        android:id="@+id/rv_projects"
-        android:layout_width="0dp"
-        android:layout_height="0dp"
-        android:layout_marginTop="10dp"
-        android:clipToPadding="false"
-        android:paddingBottom="120dp"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.0"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/tabContainer"
-        app:layout_constraintVertical_bias="0.0"
-        tools:listitem="@layout/item_project" />
-
-    <LinearLayout
-        android:id="@+id/layout_empty_state"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:gravity="center"
-        android:orientation="vertical"
-        android:visibility="gone"
-        app:layout_constraintTop_toBottomOf="@id/tabContainer"
-        app:layout_constraintBottom_toTopOf="@id/btn_create_project"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent">
-
-        <ImageView
-            android:layout_width="100dp"
-            android:layout_height="100dp"
-            android:alpha="0.5"
-            android:src="@drawable/ic_tasks"
-            app:tint="@color/text_hint"/>
-
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="16dp"
-            android:text="No projects yet"
-            android:textColor="@color/text_hint"
-            android:textSize="16sp"/>
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Progress Overview"
+                        android:textColor="@color/text_primary"
+                        android:textSize="16sp"
+                        android:textStyle="bold"/>
 
                     <!-- Progress Bar -->
                     <LinearLayout
@@ -468,10 +679,8 @@
     <include
         android:id="@+id/bottomNav"
         layout="@layout/nav_bottom"
-        android:layout_width="0dp"
-        android:layout_height="56dp"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"/>
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom"/>
 
-</androidx.constraintlayout.widget.ConstraintLayout>
+</androidx.coordinatorlayout.widget.CoordinatorLayout>

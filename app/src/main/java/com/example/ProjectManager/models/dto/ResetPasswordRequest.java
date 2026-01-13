@@ -2,26 +2,17 @@ package com.example.ProjectManager.models.dto;
 
 /**
  * Request DTO for reset password endpoint.
- * POST /api/v1/auth/reset-password
+ * POST /api/v1/auth/reset-password/{token}
+ * Note: Token is passed in the URL path, not in the body.
  */
 public class ResetPasswordRequest {
-    private String token;
     private String newPassword;
 
     public ResetPasswordRequest() {
     }
 
-    public ResetPasswordRequest(String token, String newPassword) {
-        this.token = token;
+    public ResetPasswordRequest(String newPassword) {
         this.newPassword = newPassword;
-    }
-
-    public String getToken() {
-        return token;
-    }
-
-    public void setToken(String token) {
-        this.token = token;
     }
 
     public String getNewPassword() {
