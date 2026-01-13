@@ -12,6 +12,7 @@ public class TaskResponse {
     private String createdAt;
     private String updatedAt;
     private Assignee assignee;   // Matches backend RichTaskResponse
+    private Long userId;         // Direct userId from backend TaskResponse (when assignee object is not provided)
 
     // Nested Assignee class to match backend structure
     public static class Assignee {
@@ -47,15 +48,30 @@ public class TaskResponse {
     public String getUpdatedAt() { return updatedAt; }
     public Assignee getAssignee() { return assignee; }
 
-    // Convenience method to get userId from assignee
+    // Convenience method to get userId from assignee or direct userId field
     public long getUserId() { 
-        return assignee != null && assignee.getId() != null ? assignee.getId() : 0; 
+        if (assignee != null && assignee.getId() != null) {
+            return assignee.getId();
+        }
+        return userId != null ? userId : 0; 
     }
     
-    // Convenience method to get assignee ID (nullable)
+    // Convenience method to get assignee ID (nullable) - checks both assignee object and direct userId
     public Long getAssigneeId() { 
-        return assignee != null ? assignee.getId() : null; 
+        if (assignee != null && assignee.getId() != null) {
+            return assignee.getId();
+        }
+        return userId;
     }
+    
+    // Check if we have assignee details or just userId
+    public boolean hasAssigneeDetails() {
+        return assignee != null && assignee.getId() != null;
+    }
+    
+    // Direct userId field setter/getter
+    public Long getDirectUserId() { return userId; }
+    public void setUserId(Long userId) { this.userId = userId; }
 
     // Setters
     public void setId(long id) { this.id = id; }

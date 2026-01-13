@@ -282,25 +282,51 @@ public class ProjectDetailActivity extends AppCompatActivity {
     }
 
     private void loadTasks() {
-        apiService.getAllTasks(0, 100, null, projectId, null).enqueue(new Callback<PageResponse<TaskResponse>>() {
+        // Backend limits to 10 items per page, so we need to load all pages
+        tasks.clear();
+        loadTasksPage(0);
+    }
+    
+    private void loadTasksPage(int page) {
+        apiService.getAllTasks(page, 100, null, projectId, null).enqueue(new Callback<PageResponse<TaskResponse>>() {
             @Override
             public void onResponse(@NonNull Call<PageResponse<TaskResponse>> call,
                                    @NonNull Response<PageResponse<TaskResponse>> response) {
                 if (response.isSuccessful() && response.body() != null) {
-                    tasks.clear();
-                    tasks.addAll(response.body().getContent());
-                    updateProgress();
+                    PageResponse<TaskResponse> pageResponse = response.body();
+                    tasks.addAll(pageResponse.getContent());
                     
+                    // Check if there are more pages to load using isLast() flag
+                    if (!pageResponse.isLast()) {
+                        // Load next page
+                        loadTasksPage(page + 1);
+                    } else {
+                        // All pages loaded, update UI
+                        updateProgress();
+                        if (tabLayout.getSelectedTabPosition() == 0) {
+                            updateContent(0);
+                        }
+                        showLoading(false);
+                        swipeRefresh.setRefreshing(false);
+                    }
+                } else {
+                    // Update UI even if response failed (show what we have)
+                    updateProgress();
                     if (tabLayout.getSelectedTabPosition() == 0) {
                         updateContent(0);
                     }
+                    showLoading(false);
+                    swipeRefresh.setRefreshing(false);
                 }
-                showLoading(false);
-                swipeRefresh.setRefreshing(false);
             }
 
             @Override
             public void onFailure(@NonNull Call<PageResponse<TaskResponse>> call, @NonNull Throwable t) {
+                // Update UI even if request failed (show what we have)
+                updateProgress();
+                if (tabLayout.getSelectedTabPosition() == 0) {
+                    updateContent(0);
+                }
                 showLoading(false);
                 swipeRefresh.setRefreshing(false);
             }

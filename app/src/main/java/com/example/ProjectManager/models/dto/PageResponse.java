@@ -6,6 +6,7 @@ package com.example.ProjectManager.models.dto;
 public class PageResponse<T> {
     private java.util.List<T> content;
     private int page;
+    private int number;  // Spring uses 'number' for current page
     private int size;
     private long totalElements;
     private int totalPages;
@@ -25,6 +26,14 @@ public class PageResponse<T> {
 
     public void setPage(int page) {
         this.page = page;
+    }
+    
+    public int getNumber() {
+        return number;
+    }
+    
+    public void setNumber(int number) {
+        this.number = number;
     }
 
     public int getSize() {

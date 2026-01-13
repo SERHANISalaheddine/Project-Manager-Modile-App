@@ -189,8 +189,8 @@ public class TaskDetailActivity extends AppCompatActivity {
         }
 
         // Load assignee info
-        if (currentTask.getAssignee() != null && currentTask.getAssignee().getId() != null) {
-            // Use assignee info directly from task response
+        if (currentTask.hasAssigneeDetails()) {
+            // Use assignee info directly from task response (RichTaskResponse)
             TaskResponse.Assignee assignee = currentTask.getAssignee();
             String name = (assignee.getFirstName() + " " + assignee.getLastName()).trim();
             txtAssigneeName.setText(name.isEmpty() ? "Unknown" : name);
@@ -202,6 +202,9 @@ public class TaskDetailActivity extends AppCompatActivity {
                     .placeholder(R.drawable.ic_profile_placeholder)
                     .error(R.drawable.ic_profile_placeholder)
                     .into(imgAssigneeAvatar);
+        } else if (currentTask.getAssigneeId() != null) {
+            // Backend returned only userId (TaskResponse), fetch user details
+            loadAssigneeInfo(currentTask.getAssigneeId());
         } else {
             txtAssigneeName.setText("Unassigned");
             imgAssigneeAvatar.setImageResource(R.drawable.ic_profile_placeholder);

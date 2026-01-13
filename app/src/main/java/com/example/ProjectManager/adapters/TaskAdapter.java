@@ -2,6 +2,7 @@ package com.example.ProjectManager.adapters;
 
 import android.content.Context;
 import android.graphics.Color;
+import android.util.LruCache;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -15,7 +16,10 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.bumptech.glide.Glide;
 import com.example.ProjectManager.R;
+import com.example.ProjectManager.api.ApiService;
+import com.example.ProjectManager.api.RetrofitClient;
 import com.example.ProjectManager.models.dto.TaskResponse;
+import com.example.ProjectManager.models.dto.UserResponseDto;
 import com.example.ProjectManager.utils.ImageUtils;
 
 import java.text.SimpleDateFormat;
@@ -25,6 +29,9 @@ import java.util.List;
 import java.util.Locale;
 
 import de.hdodenhof.circleimageview.CircleImageView;
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
 
 public class TaskAdapter extends RecyclerView.Adapter<TaskAdapter.TaskVH> {
 
@@ -32,6 +39,9 @@ public class TaskAdapter extends RecyclerView.Adapter<TaskAdapter.TaskVH> {
     private final List<TaskResponse> allItems = new ArrayList<>(); // Keep all items for filtering
     private OnTaskClickListener listener;
     private String currentFilter = null; // null = All
+    
+    // Cache for user names to avoid repeated API calls
+    private static final LruCache<Long, String> userNameCache = new LruCache<>(50);
 
     public interface OnTaskClickListener {
         void onTaskClick(TaskResponse task);
@@ -157,9 +167,10 @@ public class TaskAdapter extends RecyclerView.Adapter<TaskAdapter.TaskVH> {
         holder.tvStatus.setText(formatStatus(status));
         applyStatusStyle(holder, status);
 
-        // Assignee
-        TaskResponse.Assignee assignee = task.getAssignee();
-        if (assignee != null) {
+        // Assignee - check both assignee object (RichTaskResponse) and direct userId (TaskResponse)
+        if (task.hasAssigneeDetails()) {
+            // We have full assignee details from RichTaskResponse
+            TaskResponse.Assignee assignee = task.getAssignee();
             String fullName = "";
             if (assignee.getFirstName() != null) fullName += assignee.getFirstName();
             if (assignee.getLastName() != null) fullName += " " + assignee.getLastName();
@@ -186,6 +197,21 @@ public class TaskAdapter extends RecyclerView.Adapter<TaskAdapter.TaskVH> {
             } else {
                 holder.imgAssignee.setImageResource(R.drawable.ic_profile_placeholder);
             }
+        } else if (task.getAssigneeId() != null) {
+            // Backend returned only userId (TaskResponse), fetch user details async
+            Long userId = task.getAssigneeId();
+            holder.tvAssigneeName.setText("Loading...");
+            
+            // Load avatar immediately using userId
+            String avatarUrl = ImageUtils.getProfilePictureUrlByUserId(userId);
+            Glide.with(context)
+                    .load(avatarUrl)
+                    .placeholder(R.drawable.ic_profile_placeholder)
+                    .error(R.drawable.ic_profile_placeholder)
+                    .into(holder.imgAssignee);
+            
+            // Fetch user name async
+            loadUserName(context, userId, holder.tvAssigneeName, task);
         } else {
             holder.tvAssigneeName.setText("Unassigned");
             holder.imgAssignee.setImageResource(R.drawable.ic_profile_placeholder);
@@ -284,5 +310,57 @@ public class TaskAdapter extends RecyclerView.Adapter<TaskAdapter.TaskVH> {
             }
         }
         return dateStr;
+    }
+    
+    /**
+     * Load user name from API and cache it for future use.
+     * Also populates the assignee object in TaskResponse for consistency.
+     */
+    private void loadUserName(Context context, Long userId, TextView textView, TaskResponse task) {
+        // Check cache first
+        String cachedName = userNameCache.get(userId);
+        if (cachedName != null) {
+            textView.setText(cachedName);
+            return;
+        }
+        
+        ApiService apiService = RetrofitClient.getInstance(context).create(ApiService.class);
+        apiService.getUser(userId).enqueue(new Callback<UserResponseDto>() {
+            @Override
+            public void onResponse(@NonNull Call<UserResponseDto> call, @NonNull Response<UserResponseDto> response) {
+                if (response.isSuccessful() && response.body() != null) {
+                    UserResponseDto user = response.body();
+                    String fullName = "";
+                    if (user.getFirstName() != null) fullName += user.getFirstName();
+                    if (user.getLastName() != null) fullName += " " + user.getLastName();
+                    fullName = fullName.trim();
+                    
+                    if (fullName.isEmpty()) {
+                        fullName = user.getEmail() != null ? user.getEmail() : "Unknown";
+                    }
+                    
+                    // Cache the name
+                    userNameCache.put(userId, fullName);
+                    
+                    // Update UI
+                    textView.setText(fullName);
+                    
+                    // Populate assignee object in task for future use
+                    TaskResponse.Assignee assignee = new TaskResponse.Assignee();
+                    assignee.setId(userId);
+                    assignee.setFirstName(user.getFirstName());
+                    assignee.setLastName(user.getLastName());
+                    assignee.setEmail(user.getEmail());
+                    task.setAssignee(assignee);
+                } else {
+                    textView.setText("Unknown");
+                }
+            }
+
+            @Override
+            public void onFailure(@NonNull Call<UserResponseDto> call, @NonNull Throwable t) {
+                textView.setText("Unknown");
+            }
+        });
     }
 }
