@@ -28,6 +28,9 @@ import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
 
+import android.text.method.PasswordTransformationMethod;
+import android.text.method.HideReturnsTransformationMethod;
+
 /**
  * Login screen where users can sign in with email/password.
  * Includes mock authentication for testing.
@@ -101,20 +104,27 @@ public class LoginActivity extends AppCompatActivity {
         });
     }
 
+
+
     private void togglePasswordVisibility() {
-        if (isPasswordVisible) {
-            // Hide password
-            etPassword.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_PASSWORD);
-            btnTogglePassword.setImageResource(R.drawable.ic_visibility);
-        } else {
-            // Show password
-            etPassword.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_VISIBLE_PASSWORD);
-            btnTogglePassword.setImageResource(R.drawable.ic_visibility_off);
-        }
         isPasswordVisible = !isPasswordVisible;
-        // Move cursor to end of text
-        etPassword.setSelection(etPassword.getText().length());
+
+        if (isPasswordVisible) {
+            // Show password
+            etPassword.setTransformationMethod(HideReturnsTransformationMethod.getInstance());
+            btnTogglePassword.setImageResource(R.drawable.ic_visibility_off); // eye-off means "hide"
+        } else {
+            // Hide password
+            etPassword.setTransformationMethod(PasswordTransformationMethod.getInstance());
+            btnTogglePassword.setImageResource(R.drawable.ic_visibility); // eye means "show"
+        }
+
+        // Keep cursor at end
+        if (etPassword.getText() != null) {
+            etPassword.setSelection(etPassword.getText().length());
+        }
     }
+
 
     private void handleLogin() {
         String email = etEmail.getText().toString().trim();
