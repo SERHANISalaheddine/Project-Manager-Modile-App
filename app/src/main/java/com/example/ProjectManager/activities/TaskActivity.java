@@ -3,7 +3,6 @@ package com.example.ProjectManager.activities;
 import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
-import android.widget.Button;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -20,6 +19,9 @@ import com.example.ProjectManager.models.dto.PageResponse;
 import com.example.ProjectManager.models.dto.TaskResponse;
 import com.example.ProjectManager.utils.NavigationUtils;
 import com.example.ProjectManager.utils.SharedPrefsManager;
+import com.google.android.material.chip.Chip;
+import com.google.android.material.chip.ChipGroup;
+import com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton;
 
 import retrofit2.Call;
 import retrofit2.Callback;
@@ -31,12 +33,20 @@ public class TaskActivity extends AppCompatActivity {
     private TaskAdapter adapter;
     private ApiService apiService;
 
-    private Button createTaskBtn;
+    // UI Elements
+    private ExtendedFloatingActionButton createTaskBtn;
     private LinearLayout navHome, navProjects, navTasks, navProfile;
-    private TextView tvProjectName;
+    private LinearLayout emptyState;
+    private TextView tvProjectName, tvSectionTitle, tvTaskCount;
+    private TextView tvTodoCount, tvInProgressCount, tvDoneCount;
+
+    // Filter Chips
+    private ChipGroup chipGroup;
+    private Chip chipAll, chipTodo, chipInProgress, chipDone, chipArchived;
 
     // Project filter
     private long projectId = -1;
+    private String projectName = null;
     private SharedPrefsManager prefsManager;
 
     @Override
@@ -47,29 +57,31 @@ public class TaskActivity extends AppCompatActivity {
         // Initialize SharedPrefs Manager
         prefsManager = SharedPrefsManager.getInstance(this);
 
-        // --- RecyclerView ---
-        recyclerView = findViewById(R.id.taskRecyclerView);
-        recyclerView.setLayoutManager(new LinearLayoutManager(this));
+        // Initialize views
+        initViews();
+
+        // Initialize adapter
         adapter = new TaskAdapter();
+        adapter.setOnTaskClickListener(task -> {
+            Intent intent = new Intent(TaskActivity.this, TaskDetailActivity.class);
+            intent.putExtra(TaskDetailActivity.EXTRA_TASK_ID, task.getId());
+            startActivity(intent);
+        });
+        recyclerView.setLayoutManager(new LinearLayoutManager(this));
         recyclerView.setAdapter(adapter);
 
-        // --- Project Name TextView ---
-        tvProjectName = findViewById(R.id.tvProjectName);
-        if (tvProjectName == null) {
-            // Create one if not in layout
-            tvProjectName = new TextView(this);
-        }
-
-        // --- API ---
+        // API
         apiService = RetrofitClient.getInstance(this).create(ApiService.class);
 
-        // --- Get projectId from Intent ---
+        // Get projectId from Intent
         if (getIntent() != null) {
             projectId = getIntent().getLongExtra("projectId", -1);
-            String projectName = getIntent().getStringExtra("projectName");
+            projectName = getIntent().getStringExtra("projectName");
 
             if (projectName != null && tvProjectName != null) {
                 tvProjectName.setText(projectName);
+            } else {
+                tvProjectName.setText("All Projects");
             }
 
             // Save this project as the last opened one
@@ -81,12 +93,20 @@ public class TaskActivity extends AppCompatActivity {
         // Initialize navigation
         initializeNavigation();
 
-        // --- Create Task Button ---
-        createTaskBtn = findViewById(R.id.createTaskBtn);
+        // Setup filter chips
+        setupFilterChips();
+
+        // Create Task Button
         createTaskBtn.setOnClickListener(v -> {
             Intent i = new Intent(TaskActivity.this, CreateTaskActivity.class);
             if (projectId > 0) {
                 i.putExtra("projectId", projectId);
+            } else {
+                // If no project selected, try to use last project
+                long lastProjectId = prefsManager.getLastProjectId();
+                if (lastProjectId > 0) {
+                    i.putExtra("projectId", lastProjectId);
+                }
             }
             startActivity(i);
         });
@@ -95,9 +115,55 @@ public class TaskActivity extends AppCompatActivity {
         loadTasksFromBackend();
     }
 
-    /**
-     * Initialize navigation bar
-     */
+    private void initViews() {
+        recyclerView = findViewById(R.id.taskRecyclerView);
+        createTaskBtn = findViewById(R.id.createTaskBtn);
+        emptyState = findViewById(R.id.emptyState);
+        tvProjectName = findViewById(R.id.tvProjectName);
+        tvSectionTitle = findViewById(R.id.tvSectionTitle);
+        tvTaskCount = findViewById(R.id.tvTaskCount);
+
+        // Stats counters
+        tvTodoCount = findViewById(R.id.tvTodoCount);
+        tvInProgressCount = findViewById(R.id.tvInProgressCount);
+        tvDoneCount = findViewById(R.id.tvDoneCount);
+
+        // Chips
+        chipGroup = findViewById(R.id.chipGroup);
+        chipAll = findViewById(R.id.chipAll);
+        chipTodo = findViewById(R.id.chipTodo);
+        chipInProgress = findViewById(R.id.chipInProgress);
+        chipDone = findViewById(R.id.chipDone);
+        chipArchived = findViewById(R.id.chipArchived);
+    }
+
+    private void setupFilterChips() {
+        chipGroup.setOnCheckedStateChangeListener((group, checkedIds) -> {
+            if (checkedIds.isEmpty()) return;
+            
+            int checkedId = checkedIds.get(0);
+            if (checkedId == R.id.chipAll) {
+                adapter.filterByStatus(null);
+                tvSectionTitle.setText("All Tasks");
+            } else if (checkedId == R.id.chipTodo) {
+                adapter.filterByStatus("TODO");
+                tvSectionTitle.setText("To Do");
+            } else if (checkedId == R.id.chipInProgress) {
+                adapter.filterByStatus("IN_PROGRESS");
+                tvSectionTitle.setText("In Progress");
+            } else if (checkedId == R.id.chipDone) {
+                adapter.filterByStatus("DONE");
+                tvSectionTitle.setText("Done");
+            } else if (checkedId == R.id.chipArchived) {
+                adapter.filterByStatus("ARCHIVED");
+                tvSectionTitle.setText("Archived");
+            }
+            
+            updateTaskCount();
+            updateEmptyState();
+        });
+    }
+
     private void initializeNavigation() {
         navHome = findViewById(R.id.nav_home);
         navProjects = findViewById(R.id.nav_projects);
@@ -121,25 +187,14 @@ public class TaskActivity extends AppCompatActivity {
     }
 
     private void loadTasksFromBackend() {
-        // Filter by projectId if available
         Call<PageResponse<TaskResponse>> call;
 
         if (projectId > 0) {
             // Filter tasks by project
-            call = apiService.getAllTasks(
-                    0, 50,
-                    null, // userId filter
-                    projectId, // projectId filter
-                    null // status filter
-            );
+            call = apiService.getAllTasks(0, 100, null, projectId, null);
         } else {
             // Load all tasks (no project filter)
-            call = apiService.getAllTasks(
-                    0, 50,
-                    null, // userId filter
-                    null, // projectId filter
-                    null // status filter
-            );
+            call = apiService.getAllTasks(0, 100, null, null, null);
         }
 
         call.enqueue(new Callback<PageResponse<TaskResponse>>() {
@@ -148,16 +203,17 @@ public class TaskActivity extends AppCompatActivity {
                     Response<PageResponse<TaskResponse>> response) {
 
                 if (response.isSuccessful() && response.body() != null) {
-
                     if (response.body().getContent() != null) {
                         adapter.setItems(response.body().getContent());
                     } else {
                         adapter.setItems(null);
                     }
-
+                    updateStats();
+                    updateTaskCount();
+                    updateEmptyState();
                 } else {
                     Toast.makeText(TaskActivity.this,
-                            "Erreur chargement tasks: " + response.code(),
+                            "Error loading tasks: " + response.code(),
                             Toast.LENGTH_SHORT).show();
                 }
             }
@@ -165,9 +221,36 @@ public class TaskActivity extends AppCompatActivity {
             @Override
             public void onFailure(Call<PageResponse<TaskResponse>> call, Throwable t) {
                 Toast.makeText(TaskActivity.this,
-                        "Connexion échouée: " + t.getMessage(),
+                        "Connection failed: " + t.getMessage(),
                         Toast.LENGTH_SHORT).show();
             }
         });
+    }
+
+    private void updateStats() {
+        if (tvTodoCount != null) {
+            tvTodoCount.setText(String.valueOf(adapter.getCountByStatus("TODO")));
+        }
+        if (tvInProgressCount != null) {
+            tvInProgressCount.setText(String.valueOf(adapter.getCountByStatus("IN_PROGRESS")));
+        }
+        if (tvDoneCount != null) {
+            tvDoneCount.setText(String.valueOf(adapter.getCountByStatus("DONE")));
+        }
+    }
+
+    private void updateTaskCount() {
+        int count = adapter.getItemCount();
+        tvTaskCount.setText(count + (count == 1 ? " task" : " tasks"));
+    }
+
+    private void updateEmptyState() {
+        if (adapter.getItemCount() == 0) {
+            emptyState.setVisibility(View.VISIBLE);
+            recyclerView.setVisibility(View.GONE);
+        } else {
+            emptyState.setVisibility(View.GONE);
+            recyclerView.setVisibility(View.VISIBLE);
+        }
     }
 }

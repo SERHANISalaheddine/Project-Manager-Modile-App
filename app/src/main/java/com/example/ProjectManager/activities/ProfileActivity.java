@@ -211,14 +211,30 @@ public class ProfileActivity extends AppCompatActivity {
     }
     
     private void loadProfilePicture() {
-        String profilePictureUrl = Constants.BASE_URL + "/api/v1/users/" + userId + "/profile-picture";
-        
-        Glide.with(this)
-            .load(profilePictureUrl)
-            .transform(new CircleCrop())
-            .placeholder(R.drawable.ic_profile_placeholder)
-            .error(R.drawable.ic_profile_placeholder)
-            .into(profileImage);
+        // Fetch user data and use the profilePictureUrl from response
+        apiService.getUser(userId).enqueue(new Callback<UserResponseDto>() {
+            @Override
+            public void onResponse(@NonNull Call<UserResponseDto> call, @NonNull Response<UserResponseDto> response) {
+                if (response.isSuccessful() && response.body() != null) {
+                    String profilePicUrl = com.example.ProjectManager.utils.ImageUtils.getProfilePictureUrl(
+                        response.body().getProfilePictureUrl()
+                    );
+                    if (profilePicUrl != null) {
+                        Glide.with(ProfileActivity.this)
+                            .load(profilePicUrl)
+                            .transform(new CircleCrop())
+                            .placeholder(R.drawable.ic_profile_placeholder)
+                            .error(R.drawable.ic_profile_placeholder)
+                            .into(profileImage);
+                    }
+                }
+            }
+
+            @Override
+            public void onFailure(@NonNull Call<UserResponseDto> call, @NonNull Throwable t) {
+                // Keep default placeholder
+            }
+        });
     }
     
     private void loadStatistics() {

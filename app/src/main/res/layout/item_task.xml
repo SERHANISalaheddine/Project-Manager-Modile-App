@@ -1,13 +1,17 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.cardview.widget.CardView
+<com.google.android.material.card.MaterialCardView
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:layout_marginHorizontal="16dp"
-    android:layout_marginVertical="8dp"
-    app:cardCornerRadius="18dp"
-    app:cardElevation="6dp">
+    android:layout_marginVertical="6dp"
+    app:cardCornerRadius="16dp"
+    app:cardElevation="2dp"
+    app:strokeWidth="0dp"
+    android:clickable="true"
+    android:focusable="true"
+    android:foreground="?attr/selectableItemBackground">
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -15,95 +19,199 @@
         android:orientation="vertical"
         android:padding="16dp">
 
-        <!-- TOP ROW -->
+        <!-- Top Row: Status Indicator + Title + Menu -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:gravity="center_vertical">
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
 
+            <!-- Status Indicator Line -->
             <View
-                android:layout_width="10dp"
-                android:layout_height="10dp"
-                android:background="@drawable/dot_purple"/>
+                android:id="@+id/statusIndicator"
+                android:layout_width="4dp"
+                android:layout_height="40dp"
+                android:background="@drawable/bg_status_indicator_todo" />
 
-            <TextView
-                android:id="@+id/tvTitle"
+            <LinearLayout
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:layout_marginStart="10dp"
+                android:layout_marginStart="12dp"
                 android:layout_weight="1"
-                android:text="Connect APIs to the dashboard"
-                android:textColor="#2D2D2D"
-                android:textSize="14sp"
-                android:textStyle="bold"/>
+                android:orientation="vertical">
 
+                <!-- Task Title -->
+                <TextView
+                    android:id="@+id/tvTitle"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:ellipsize="end"
+                    android:maxLines="2"
+                    android:textColor="#1E293B"
+                    android:textSize="15sp"
+                    android:textStyle="bold"
+                    tools:text="Connect APIs to the dashboard" />
+
+                <!-- Task Description Preview -->
+                <TextView
+                    android:id="@+id/tvDescription"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="4dp"
+                    android:ellipsize="end"
+                    android:maxLines="1"
+                    android:textColor="#64748B"
+                    android:textSize="13sp"
+                    android:visibility="gone"
+                    tools:text="Implement REST API integration..." />
+
+            </LinearLayout>
+
+            <!-- Status Badge -->
             <TextView
-                android:id="@+id/tvDate"
+                android:id="@+id/tvStatus"
                 android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="27 Sept"
-                android:textColor="#9E9E9E"
-                android:textSize="11sp"/>
+                android:layout_height="28dp"
+                android:background="@drawable/bg_chip_todo"
+                android:gravity="center"
+                android:paddingHorizontal="12dp"
+                android:text="To Do"
+                android:textColor="#6366F1"
+                android:textSize="11sp"
+                android:textStyle="bold" />
+
         </LinearLayout>
 
-        <!-- AVATARS + STATUS -->
+        <!-- Divider -->
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:layout_marginVertical="12dp"
+            android:background="#F1F5F9" />
+
+        <!-- Bottom Row: Assignee + Date + Project -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="10dp"
-            android:orientation="horizontal"
-            android:gravity="center_vertical">
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
 
-            <!-- Avatars -->
+            <!-- Assignee Section -->
             <LinearLayout
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
+                android:gravity="center_vertical"
                 android:orientation="horizontal">
 
-                <View
-                    android:layout_width="26dp"
-                    android:layout_height="26dp"
-                    android:background="@drawable/bg_avatar_placeholder_1"/>
+                <!-- Assignee Avatar -->
+                <de.hdodenhof.circleimageview.CircleImageView
+                    android:id="@+id/imgAssignee"
+                    android:layout_width="28dp"
+                    android:layout_height="28dp"
+                    android:src="@drawable/ic_profile_placeholder"
+                    app:civ_border_color="#E2E8F0"
+                    app:civ_border_width="1dp" />
 
-                <View
-                    android:layout_width="26dp"
-                    android:layout_height="26dp"
-                    android:layout_marginStart="-8dp"
-                    android:background="@drawable/bg_avatar_placeholder_2"/>
+                <LinearLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="8dp"
+                    android:orientation="vertical">
 
-                <View
-                    android:layout_width="26dp"
-                    android:layout_height="26dp"
-                    android:layout_marginStart="-8dp"
-                    android:background="@drawable/bg_avatar_placeholder_3"/>
+                    <TextView
+                        android:id="@+id/tvAssigneeName"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:ellipsize="end"
+                        android:maxLines="1"
+                        android:textColor="#475569"
+                        android:textSize="12sp"
+                        android:textStyle="bold"
+                        tools:text="John Doe" />
+
+                    <TextView
+                        android:id="@+id/tvAssigneeLabel"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Assignee"
+                        android:textColor="#94A3B8"
+                        android:textSize="10sp" />
+
+                </LinearLayout>
+
             </LinearLayout>
 
-            <TextView
-                android:id="@+id/tvStatus"
+            <!-- Date Section -->
+            <LinearLayout
                 android:layout_width="wrap_content"
-                android:layout_height="26dp"
-                android:background="@drawable/bg_chip_progress"
-                android:gravity="center"
-                android:paddingHorizontal="12dp"
-                android:text="In Progress"
-                android:textColor="#FF9800"
-                android:textSize="11sp"
-                android:textStyle="bold"/>
+                android:layout_height="wrap_content"
+                android:gravity="center_vertical"
+                android:orientation="horizontal"
+                android:paddingHorizontal="8dp">
+
+                <ImageView
+                    android:layout_width="14dp"
+                    android:layout_height="14dp"
+                    android:src="@drawable/ic_calendar"
+                    app:tint="#94A3B8"
+                    android:contentDescription="Date" />
+
+                <TextView
+                    android:id="@+id/tvDate"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="4dp"
+                    android:textColor="#64748B"
+                    android:textSize="11sp"
+                    tools:text="27 Sept" />
+
+            </LinearLayout>
+
+            <!-- Project Badge -->
+            <LinearLayout
+                android:id="@+id/projectBadge"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:background="@drawable/bg_project_badge"
+                android:gravity="center_vertical"
+                android:orientation="horizontal"
+                android:paddingHorizontal="8dp"
+                android:paddingVertical="4dp"
+                android:visibility="gone">
+
+                <View
+                    android:layout_width="6dp"
+                    android:layout_height="6dp"
+                    android:background="@drawable/dot_purple" />
+
+                <TextView
+                    android:id="@+id/tvProjectName"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="4dp"
+                    android:ellipsize="end"
+                    android:maxLines="1"
+                    android:maxWidth="80dp"
+                    android:textColor="#6366F1"
+                    android:textSize="10sp"
+                    tools:text="Project A" />
+
+            </LinearLayout>
+
         </LinearLayout>
 
+        <!-- Progress Bar -->
         <ProgressBar
             android:id="@+id/pbProgress"
-            android:layout_width="match_parent"
-            android:layout_height="6dp"
-            android:layout_marginTop="12dp"
-            android:progress="60"
-            android:max="100"
             style="?android:attr/progressBarStyleHorizontal"
-            android:progressTint="#6C4DFF"
-            android:backgroundTint="#EDEAFF"/>
+            android:layout_width="match_parent"
+            android:layout_height="4dp"
+            android:layout_marginTop="12dp"
+            android:progress="30"
+            android:progressDrawable="@drawable/progress_bar_drawable"
+            android:visibility="gone" />
 
     </LinearLayout>
 
-</androidx.cardview.widget.CardView>
+</com.google.android.material.card.MaterialCardView>

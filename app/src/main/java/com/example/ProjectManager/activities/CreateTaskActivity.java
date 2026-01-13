@@ -44,7 +44,7 @@ public class CreateTaskActivity extends AppCompatActivity {
     private ApiService api;
 
     // ---------- State ----------
-    private long projectId = 1;        // passed from Intent
+    private long projectId = -1;       // passed from Intent, -1 = not set
     private long selectedUserId = -1;  // chosen member id
     private String selectedStatus = "TODO";
 
@@ -60,7 +60,14 @@ public class CreateTaskActivity extends AppCompatActivity {
 
         // ✅ 2) Read projectId from Intent if exists
         if (getIntent() != null && getIntent().hasExtra("projectId")) {
-            projectId = getIntent().getLongExtra("projectId", 1);
+            projectId = getIntent().getLongExtra("projectId", -1);
+        }
+
+        // Check if projectId is valid
+        if (projectId <= 0) {
+            Toast.makeText(this, "Please select a project first", Toast.LENGTH_LONG).show();
+            finish();
+            return;
         }
 
         // ✅ 3) Bind views (match your XML IDs)
@@ -170,22 +177,32 @@ public class CreateTaskActivity extends AppCompatActivity {
 
                 if (response.isSuccessful() && response.body() != null) {
 
-                    // ⚠️ IMPORTANT: adjust if PageResponse uses a different method name
                     List<ProjectMemberResponse> users = response.body().getContent();
 
                     memberList.clear();
-                    if (users != null) {
+                    if (users != null && !users.isEmpty()) {
                         for (ProjectMemberResponse u : users) {
                             memberList.add(MemberMapper.fromProjectMember(u));
                         }
+                        adapter.setItems(memberList);
+                    } else {
+                        Toast.makeText(CreateTaskActivity.this,
+                                "No members found in this project",
+                                Toast.LENGTH_SHORT).show();
                     }
 
-                    adapter.setItems(memberList);
-
                 } else {
+                    String errorMsg = "Failed to load members";
+                    if (response.code() == 403) {
+                        errorMsg = "You don't have access to this project's members";
+                    } else if (response.code() == 404) {
+                        errorMsg = "Project not found";
+                    } else if (response.code() == 401) {
+                        errorMsg = "Please login again";
+                    }
                     Toast.makeText(CreateTaskActivity.this,
-                            "Failed to load members (" + response.code() + ")",
-                            Toast.LENGTH_SHORT).show();
+                            errorMsg + " (" + response.code() + ")",
+                            Toast.LENGTH_LONG).show();
                 }
             }
 
@@ -193,7 +210,7 @@ public class CreateTaskActivity extends AppCompatActivity {
             public void onFailure(Call<PageResponse<ProjectMemberResponse>> call, Throwable t) {
                 Toast.makeText(CreateTaskActivity.this,
                         "Network error: " + t.getMessage(),
-                        Toast.LENGTH_SHORT).show();
+                        Toast.LENGTH_LONG).show();
             }
         });
     }

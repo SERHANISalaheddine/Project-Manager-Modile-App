@@ -25,8 +25,8 @@ import com.example.ProjectManager.models.dto.PageResponse;
 import com.example.ProjectManager.models.dto.ProjectResponse;
 import com.example.ProjectManager.utils.NavigationUtils;
 import com.example.ProjectManager.utils.SessionManager;
-import com.google.android.material.button.MaterialButton;
 import com.google.android.material.tabs.TabLayout;
+import android.widget.ImageView;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -41,7 +41,7 @@ public class ProjectsActivity extends AppCompatActivity {
 
     // UI Components
     private EditText etSearch;
-    private MaterialButton btnCreateProject;
+    private ImageView btnCreateProject;
     private TabLayout tabFilter;
     private TextView tvTotalCount, tvOwnedCount, tvMemberCount;
     private RecyclerView rvProjects;

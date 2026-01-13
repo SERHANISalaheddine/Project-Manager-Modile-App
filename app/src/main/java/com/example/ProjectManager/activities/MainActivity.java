@@ -270,11 +270,11 @@ public class MainActivity extends AppCompatActivity {
                     UserResponseDto user = response.body();
                     tvUserName.setText("Welcome, " + user.getFirstName() + "!");
 
-                    String profilePicUrl = user.getProfilePictureUrl();
-                    if (profilePicUrl != null && !profilePicUrl.isEmpty()) {
-                        String fullUrl = com.example.ProjectManager.utils.Constants.BASE_URL + profilePicUrl;
+                    // Use ImageUtils to properly convert profile picture URL
+                    String profilePicUrl = com.example.ProjectManager.utils.ImageUtils.getProfilePictureUrl(user.getProfilePictureUrl());
+                    if (profilePicUrl != null) {
                         Glide.with(MainActivity.this)
-                                .load(fullUrl)
+                                .load(profilePicUrl)
                                 .placeholder(R.drawable.ic_profile)
                                 .error(R.drawable.ic_profile)
                                 .into(ivProfile);

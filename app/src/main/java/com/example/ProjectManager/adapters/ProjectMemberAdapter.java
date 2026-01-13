@@ -14,6 +14,7 @@ import com.bumptech.glide.Glide;
 import com.bumptech.glide.load.engine.DiskCacheStrategy;
 import com.example.ProjectManager.R;
 import com.example.ProjectManager.models.dto.ProjectMemberResponse;
+import com.example.ProjectManager.utils.ImageUtils;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -107,12 +108,9 @@ public class ProjectMemberAdapter extends RecyclerView.Adapter<ProjectMemberAdap
                 txtRole.setVisibility(View.GONE);
             }
 
-            // Load avatar
-            if (member.getProfilePictureUrl() != null && !member.getProfilePictureUrl().isEmpty()) {
-                String imageUrl = member.getProfilePictureUrl();
-                if (!imageUrl.startsWith("http")) {
-                    imageUrl = "http://10.0.2.2:8080" + imageUrl;
-                }
+            // Load avatar using ImageUtils
+            String imageUrl = ImageUtils.getProfilePictureUrl(member.getProfilePictureUrl());
+            if (imageUrl != null) {
                 Glide.with(context)
                         .load(imageUrl)
                         .diskCacheStrategy(DiskCacheStrategy.ALL)
