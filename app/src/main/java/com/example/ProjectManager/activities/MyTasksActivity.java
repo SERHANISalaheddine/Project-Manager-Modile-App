@@ -22,6 +22,7 @@ import com.example.ProjectManager.adapters.TaskCardAdapter;
 import com.example.ProjectManager.api.ApiService;
 import com.example.ProjectManager.api.RetrofitClient;
 import com.example.ProjectManager.models.dto.PageResponse;
+import com.example.ProjectManager.models.dto.ProjectResponse;
 import com.example.ProjectManager.models.dto.TaskResponse;
 import com.example.ProjectManager.utils.NavigationUtils;
 import com.example.ProjectManager.utils.SessionManager;
@@ -184,37 +185,111 @@ public class MyTasksActivity extends AppCompatActivity {
             swipeRefresh.setRefreshing(true);
         }
 
-        // Load all tasks for user
-        apiService.getAllTasks(0, 100, userId, null, null).enqueue(new Callback<PageResponse<TaskResponse>>() {
+        allTasks.clear();
+        
+        // Load owned projects first, then get all tasks from each project
+        loadTasksFromOwnedProjects(userId);
+    }
+    
+    private void loadTasksFromOwnedProjects(long userId) {
+        apiService.getProjectsByOwner(userId, 0, 100).enqueue(new Callback<PageResponse<ProjectResponse>>() {
             @Override
-            public void onResponse(@NonNull Call<PageResponse<TaskResponse>> call, 
-                                   @NonNull Response<PageResponse<TaskResponse>> response) {
-                if (swipeRefresh != null) {
-                    swipeRefresh.setRefreshing(false);
-                }
+            public void onResponse(@NonNull Call<PageResponse<ProjectResponse>> call,
+                                   @NonNull Response<PageResponse<ProjectResponse>> response) {
+                java.util.Set<Long> projectIds = new java.util.HashSet<>();
                 
                 if (response.isSuccessful() && response.body() != null) {
-                    allTasks.clear();
-                    allTasks.addAll(response.body().getContent());
-                    Log.d(TAG, "Loaded " + allTasks.size() + " tasks");
-                    
+                    for (ProjectResponse project : response.body().getContent()) {
+                        projectIds.add(project.getId());
+                    }
+                }
+                
+                // Now load member projects
+                loadTasksFromMemberProjects(userId, projectIds);
+            }
+
+            @Override
+            public void onFailure(@NonNull Call<PageResponse<ProjectResponse>> call, @NonNull Throwable t) {
+                loadTasksFromMemberProjects(userId, new java.util.HashSet<>());
+            }
+        });
+    }
+    
+    private void loadTasksFromMemberProjects(long userId, java.util.Set<Long> projectIds) {
+        apiService.getProjectsByMember(userId, 0, 100).enqueue(new Callback<PageResponse<ProjectResponse>>() {
+            @Override
+            public void onResponse(@NonNull Call<PageResponse<ProjectResponse>> call,
+                                   @NonNull Response<PageResponse<ProjectResponse>> response) {
+                if (response.isSuccessful() && response.body() != null) {
+                    for (ProjectResponse project : response.body().getContent()) {
+                        projectIds.add(project.getId());
+                    }
+                }
+                
+                // Now load tasks from all projects
+                if (projectIds.isEmpty()) {
+                    if (swipeRefresh != null) {
+                        swipeRefresh.setRefreshing(false);
+                    }
                     updateStats();
                     filterAndDisplayTasks();
                 } else {
-                    Log.e(TAG, "Failed to load tasks: " + response.code());
-                    Toast.makeText(MyTasksActivity.this, "Failed to load tasks", Toast.LENGTH_SHORT).show();
-                    updateEmptyState();
+                    loadTasksFromProjects(new java.util.ArrayList<>(projectIds), 0);
                 }
             }
 
             @Override
-            public void onFailure(@NonNull Call<PageResponse<TaskResponse>> call, @NonNull Throwable t) {
-                if (swipeRefresh != null) {
-                    swipeRefresh.setRefreshing(false);
+            public void onFailure(@NonNull Call<PageResponse<ProjectResponse>> call, @NonNull Throwable t) {
+                if (projectIds.isEmpty()) {
+                    if (swipeRefresh != null) {
+                        swipeRefresh.setRefreshing(false);
+                    }
+                    updateStats();
+                    filterAndDisplayTasks();
+                } else {
+                    loadTasksFromProjects(new java.util.ArrayList<>(projectIds), 0);
                 }
-                Log.e(TAG, "Error loading tasks", t);
-                Toast.makeText(MyTasksActivity.this, "Error: " + t.getMessage(), Toast.LENGTH_SHORT).show();
-                updateEmptyState();
+            }
+        });
+    }
+    
+    private void loadTasksFromProjects(java.util.List<Long> projectIds, int index) {
+        if (index >= projectIds.size()) {
+            // All projects loaded
+            if (swipeRefresh != null) {
+                swipeRefresh.setRefreshing(false);
+            }
+            Log.d(TAG, "Loaded " + allTasks.size() + " tasks from " + projectIds.size() + " projects");
+            updateStats();
+            filterAndDisplayTasks();
+            return;
+        }
+        
+        long projectId = projectIds.get(index);
+        apiService.getAllTasks(0, 100, null, projectId, null).enqueue(new Callback<PageResponse<TaskResponse>>() {
+            @Override
+            public void onResponse(@NonNull Call<PageResponse<TaskResponse>> call, 
+                                   @NonNull Response<PageResponse<TaskResponse>> response) {
+                if (response.isSuccessful() && response.body() != null) {
+                    // Add tasks, avoiding duplicates
+                    java.util.Set<Long> existingTaskIds = new java.util.HashSet<>();
+                    for (TaskResponse t : allTasks) {
+                        existingTaskIds.add(t.getId());
+                    }
+                    for (TaskResponse task : response.body().getContent()) {
+                        if (!existingTaskIds.contains(task.getId())) {
+                            allTasks.add(task);
+                        }
+                    }
+                }
+                // Load next project
+                loadTasksFromProjects(projectIds, index + 1);
+            }
+
+            @Override
+            public void onFailure(@NonNull Call<PageResponse<TaskResponse>> call, @NonNull Throwable t) {
+                // Continue with next project even if this one fails
+                loadTasksFromProjects(projectIds, index + 1);
             }
         });
     }
